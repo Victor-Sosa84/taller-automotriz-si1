@@ -95,13 +95,13 @@ Abre tu navegador en **http://localhost:8000**
 
 Una vez ejecutado el seeder, puedes ingresar con cualquiera de estos usuarios:
 
-| Rol | Correo | Contraseña |
-|---|---|---|
-| Administrador | `admin@taller.com` | `Admin1234!` |
-| Mecánico Jefe | `mecanico@taller.com` | `Mecanico1234!` |
-| Recepcionista | `recepcion@taller.com` | `Recepcion1234!` |
+| Rol | Usuario | Correo | Contraseña |
+|---|---|---|---|
+| Administrador | `aprincipal` | `admin@taller.com` | `Admin1234!` |
+| Mecánico Jefe | `mprueba` | `mecanico@taller.com` | `Mecanico1234!` |
+| Recepcionista | `rprueba` | `recepcion@taller.com` | `Recepcion1234!` |
 
-> También puedes ingresar con el **nombre de usuario** generado automáticamente en lugar del correo (ej. `aprincipal`, `mprueba`, `rprueba`).
+> También puedes ingresar con el **nombre de usuario** generado automáticamente en lugar del correo.
 
 ---
 

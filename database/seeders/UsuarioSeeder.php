@@ -18,21 +18,24 @@ class UsuarioSeeder extends Seeder
                 'ci'     => '00000001',
                 'nombre' => 'Administrador Principal',
                 'correo' => 'admin@taller.com',
-                'clave'  => env('ADMIN_PASSWORD', 'Admin1234!'), // Lee del .env
+                // Si la variable en el .env está vacía o no existe, se usa la clave por defecto
+                'clave' => env('ADMIN_PASSWORD') ?: 'Admin1234!',
                 'id_rol' => 1,
             ],
             [
                 'ci'     => '00000002',
                 'nombre' => 'Mecanico Prueba',
                 'correo' => 'mecanico@taller.com',
-                'clave'  => env('MECANICO_PASSWORD', 'Mecanico1234!'), // Lee del .env
+                // Si la variable en el .env está vacía o no existe, se usa la clave por defecto
+                'clave'  => env('MECANICO_PASSWORD') ?: 'Mecanico1234!', 
                 'id_rol' => 2,
             ],
             [
                 'ci'     => '00000003',
                 'nombre' => 'Recepcionista Prueba',
                 'correo' => 'recepcion@taller.com',
-                'clave'  => env('RECEPCION_PASSWORD', 'Recepcion1234!'), // Lee del .env
+                // Si la variable en el .env está vacía o no existe, se usa la clave por defecto
+                'clave'  => env('RECEPCION_PASSWORD') ?: 'Recepcion1234!',
                 'id_rol' => 3,
             ],
         ];
