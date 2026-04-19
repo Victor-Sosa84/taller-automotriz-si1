@@ -6,27 +6,10 @@ Sistema web desarrollado con **Laravel 11** para la gestión interna de un talle
 
 ## Tecnologías utilizadas
 
-- **Backend:** PHP 8.3 + Laravel 11
+- **Backend:** PHP 8.2 + Laravel 11
 - **Base de datos:** MySQL (phpMyAdmin)
 - **Frontend:** Blade Templates + CSS personalizado
 - **Autenticación:** Laravel Auth con roles personalizados
-
----
-
-## Módulos del sistema
-
-| Módulo | Descripción | Roles con acceso |
-|---|---|---|
-| Usuarios | CRUD de personal con acceso al sistema | Admin |
-| Bitácora | Registro de accesos y acciones | Admin |
-| Dashboard | Vista personalizada por rol | Todos |
-| Clientes | Registro de personas como clientes | Admin, Recepcionista |
-| Órdenes de trabajo | Gestión de trabajos del taller | Admin, Mecánico |
-| Proformas | Presupuestos y servicios | Admin, Recepcionista |
-| Herramientas | Inventario y préstamos | Admin, Mecánico |
-| Contratos y pagos | Remuneración del personal | Admin |
-
-> Algunos módulos están en desarrollo. El sistema está diseñado para crecer modularmente.
 
 ---
 
@@ -65,8 +48,8 @@ composer --version
 
 ### 1. Clonar el repositorio
 ```bash
-git clone https://github.com/tu-usuario/taller-automotriz.git
-cd taller-automotriz
+git clone https://github.com/Victor-Sosa84/taller-automotriz-si1.git
+cd taller-automotriz-si1
 ```
 
 ### 2. Instalar dependencias PHP
@@ -85,12 +68,12 @@ Abre el archivo `.env` y configura tu base de datos:
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=taller_automotriz
+DB_DATABASE=db_taller_si1
 DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-> Crea la base de datos `taller_automotriz` en phpMyAdmin antes de continuar.
+> Crea la base de datos `db_taller_si1` en phpMyAdmin antes de continuar.
 
 ### 4. Ejecutar migraciones y seeders
 ```bash
@@ -153,7 +136,7 @@ routes/
 php artisan migrate:fresh --seed
 
 # Correr solo un seeder específico
-php artisan db:seed --class=AdminSeeder
+php artisan db:seed --class=UsuarioSeeder
 
 # Ver todas las rutas registradas
 php artisan route:list
