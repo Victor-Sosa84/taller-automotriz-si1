@@ -31,7 +31,7 @@ El sistema tiene **3 roles**, cada uno con su propio dashboard y permisos:
 
 Antes de instalar, verifica que tienes:
 
-- PHP **8.3** o superior
+- PHP **8.2** o superior
 - **Composer**
 - **MySQL** (XAMPP, Laragon, o similar)
 - **Node.js** (solo si vas a compilar assets)
