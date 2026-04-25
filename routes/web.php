@@ -3,12 +3,13 @@
 use App\Http\Controllers\BitacoraController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\ClienteController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 // ── Ruta raíz → login si no autenticado ──────────────────────
 Route::get('/', function () {
-    if (auth()->check()) {
+    if (Auth::check()) {
         return redirect()->route('dashboard');
     }
     return redirect()->route('login');
@@ -62,6 +63,12 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['rol:3'])->group(function () {
         Route::get('/dashboard/recepcionista', [DashboardController::class, 'recepcionista'])->name('dashboard.recepcionista');
     });
+
+        // 🔒 Admin y Recepcionista (roles 1 y 3)
+    Route::middleware(['rol:1,3'])->group(function () {
+        Route::resource('clientes', ClienteController::class)->except(['destroy']);
+    });
+
 });
 
 require __DIR__.'/auth.php';

@@ -230,6 +230,15 @@
         </a>
         @endif
 
+        @if(auth()->user()->esAdmin() || auth()->user()->esRecepcionista())
+        <div class="nav-section">Atención al cliente</div>
+        <a href="{{ route('clientes.index') }}"
+        class="nav-item {{ request()->routeIs('clientes*') ? 'active' : '' }}">
+            <span class="nav-icon">🧑</span> Clientes
+        </a>
+        @endif
+
+
         {{-- Aquí puedes agregar más secciones según rol --}}
         @if(auth()->user()->esMecanico())
         <div class="nav-section">Taller</div>
@@ -237,10 +246,10 @@
         @endif
 
         @if(auth()->user()->esRecepcionista())
-        <div class="nav-section">Atención</div>
+        <div class="nav-section">Gestión</div>
         <a href="#" class="nav-item"><span class="nav-icon">📄</span> Proformas</a>
-        <a href="#" class="nav-item"><span class="nav-icon">🚗</span> Clientes</a>
         @endif
+
     </nav>
 
     <div class="sidebar-footer">

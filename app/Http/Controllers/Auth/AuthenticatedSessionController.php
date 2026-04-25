@@ -32,7 +32,7 @@ class AuthenticatedSessionController extends Controller
 
         // En AuthenticatedSessionController.php
         DB::table('bitacora')->insert([
-            'id_usuario' => auth()->id(), // Guardamos el ID numérico del usuario
+            'id_usuario' => Auth::id(), // Guardamos el ID numérico del usuario
             'fecha_hora' => now(),
             'accion'    => 'Inicio de Sesión',
             'ip_equipo'  => request()->ip(), // Laravel detecta la IP automáticamente
@@ -47,8 +47,8 @@ class AuthenticatedSessionController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         // 1. Guardamos quién está cerrando sesión antes de que Laravel lo "olvide"
-        $usuarioEmail = auth()->user()->email; 
-        $usuarioId = auth()->id();
+        $usuarioEmail = Auth::user()->email; 
+        $usuarioId = Auth::id();
         //console_log("Usuario con ID $usuarioId y email $usuarioEmail está cerrando sesión.");
         // 2. Registramos en la bitácora
         DB::table('bitacora')->insert([
