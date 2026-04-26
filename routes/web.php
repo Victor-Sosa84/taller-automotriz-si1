@@ -6,6 +6,7 @@ use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\AutoController;
 use App\Http\Controllers\HistorialController;
+use App\Http\Controllers\CargoController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -58,6 +59,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard/admin', [DashboardController::class, 'admin'])->name('dashboard.admin');
         Route::resource('usuarios', UsuarioController::class)->except(['show']);
         Route::get('/bitacora', [BitacoraController::class, 'index'])->name('bitacora.index');
+        // Gestión de cargos laborales del personal
+        Route::get( '/usuarios/{id}/cargos',          [CargoController::class, 'index'])->name('cargos.index');
+        Route::post('/usuarios/{id}/cargos',          [CargoController::class, 'store'])->name('cargos.store');
+        Route::delete('/usuarios/{id}/cargos/{tipo}', [CargoController::class, 'destroy'])->name('cargos.destroy');
+
     });
 
     // 🔒 SOLO MECÁNICO

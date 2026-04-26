@@ -31,4 +31,18 @@ class Persona extends Model
     {
         return $this->hasOne(Usuario::class, 'ci_personal', 'ci');
     }
+
+    // Tipos de trabajo que tiene asignados (tabla adquiere)
+    public function tiposTrabajador()
+    {
+        return $this->belongsToMany(
+            TipoTrabajador::class,
+            'adquiere',
+            'ci_personal',
+            'id_tipo_trabajador',
+            'ci',
+            'id'
+        );
+    }
+
 }

@@ -66,6 +66,9 @@
                 </td>
                 <td style="text-align:center;">
                     <div style="display:flex; gap:.4rem; justify-content:center;">
+                        <a href="{{ route('cargos.index', $u->id_usuario) }}"
+                            class="btn btn-sm btn-ghost" title="Gestionar cargos">💼</a>
+                    
                         <a href="{{ route('usuarios.edit', $u->id_usuario) }}"
                            class="btn btn-sm btn-ghost" title="Editar">✏</a>
 
