@@ -97,7 +97,7 @@ MAIL_FROM_NAME="Taller Automotriz"
 ```
 
 > Crea la base de datos `db_taller_si1` en phpMyAdmin antes de continuar.
-> Las credenciales de Mailtrap se obtienen en mailtrap.io → Email Testing → SMTP Settings → Laravel.
+> Las credenciales de Mailtrap se obtienen en mailtrap.io → Sandboxes → My Sandbox → SMTP Setting → Laravel 9+.
 
 ### 4. Migraciones y seeders
 ```bash
@@ -193,7 +193,10 @@ php artisan cache:clear
 php artisan route:clear
 
 # Vaciar sesiones activas
-php artisan session:flush
+php artisan tinker
+# Una vez adentro de tinker escribes:
+DB::table('sessions')->truncate();
+exit
 ```
 
 ---
