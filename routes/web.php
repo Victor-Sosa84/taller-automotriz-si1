@@ -7,7 +7,6 @@ use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\AutoController;
 use App\Http\Controllers\HistorialController;
 use App\Http\Controllers\CargoController;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 // ── Ruta raíz → login si no autenticado ──────────────────────
@@ -17,36 +16,6 @@ Route::get('/', function () {
     }
     return redirect()->route('login');
 });
-
-
-// ── Login ─────────────────────────────────────────────────────
-Route::post('/login', function (\Illuminate\Http\Request $request) {
-    $credentials = [
-        'correo' => $request->correo,
-        'password' => $request->clave,
-    ];
-
-    if (Auth::attempt($credentials)) {
-        $request->session()->regenerate();
-        return redirect()->route('dashboard');
-    }
-
-    return back()->withErrors([
-        'correo' => 'Credenciales incorrectas.',
-    ])->withInput();
-})->name('login.submit');
-
-// ── Logout ────────────────────────────────────────────────────
-Route::post('/logout', function (\Illuminate\Http\Request $request) {
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-    return redirect()->route('login');
-})->name('logout');
-
-// ── Rutas públicas ───────────────────────────────────────────
-Route::get('/historial',        [HistorialController::class, 'index'])->name('historial.index');
-Route::get('/historial/{placa}', [HistorialController::class, 'show'])->name('historial.show');
 
 // ── Rutas protegidas ──────────────────────────────────────────
 Route::middleware(['auth'])->group(function () {
@@ -81,6 +50,10 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('clientes', ClienteController::class)->except(['destroy']);
         Route::resource('autos', AutoController::class); // CRUD completo para autos
     });
+
+    // ── Rutas de todos los roles ───────────────────────────────────────────
+    Route::get('/historial',        [HistorialController::class, 'index'])->name('historial.index');
+    Route::get('/historial/{placa}', [HistorialController::class, 'show'])->name('historial.show');
 
 });
 

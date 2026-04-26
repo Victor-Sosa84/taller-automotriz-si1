@@ -21,6 +21,11 @@ class AuthenticatedSessionController extends Controller
         return view('auth.login');
     }
 
+    // Deshabilita remember_token — la tabla 'usuario' no tiene esa columna
+    public function setRememberToken($value) {}
+    public function getRememberToken() { return null; }
+    public function getRememberTokenName() { return ''; }
+
     /**
      * Handle an incoming authentication request.
      */
@@ -29,16 +34,17 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
-
+        
         // En AuthenticatedSessionController.php
         DB::table('bitacora')->insert([
-            'id_usuario' => Auth::id(), // Guardamos el ID numérico del usuario
+            'id_usuario' => Auth::user()->id_usuario, // Guardamos el ID numérico del usuario
             'fecha_hora' => now(),
             'accion'    => 'Inicio de Sesión',
             'ip_equipo'  => request()->ip(), // Laravel detecta la IP automáticamente
         ]);
-
-        return redirect()->intended(route('dashboard', absolute: false));
+        
+        // return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->route('dashboard');
     }
 
     /**
@@ -46,10 +52,9 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-        // 1. Guardamos quién está cerrando sesión antes de que Laravel lo "olvide"
-        $usuarioEmail = Auth::user()->email; 
-        $usuarioId = Auth::id();
-        //console_log("Usuario con ID $usuarioId y email $usuarioEmail está cerrando sesión.");
+        // 1. Guardamos quién está cerrando sesión antes de que Laravel lo "olvide" 
+        $usuarioId = Auth::user()->id_usuario;
+        
         // 2. Registramos en la bitácora
         DB::table('bitacora')->insert([
             'id_usuario' => $usuarioId,
