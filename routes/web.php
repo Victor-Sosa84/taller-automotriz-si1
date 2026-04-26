@@ -4,6 +4,8 @@ use App\Http\Controllers\BitacoraController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\AutoController;
+use App\Http\Controllers\HistorialController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -16,7 +18,7 @@ Route::get('/', function () {
 });
 
 
-
+// ── Login ─────────────────────────────────────────────────────
 Route::post('/login', function (\Illuminate\Http\Request $request) {
     $credentials = [
         'correo' => $request->correo,
@@ -40,6 +42,10 @@ Route::post('/logout', function (\Illuminate\Http\Request $request) {
     $request->session()->regenerateToken();
     return redirect()->route('login');
 })->name('logout');
+
+// ── Rutas públicas ───────────────────────────────────────────
+Route::get('/historial',        [HistorialController::class, 'index'])->name('historial.index');
+Route::get('/historial/{placa}', [HistorialController::class, 'show'])->name('historial.show');
 
 // ── Rutas protegidas ──────────────────────────────────────────
 Route::middleware(['auth'])->group(function () {
@@ -67,8 +73,10 @@ Route::middleware(['auth'])->group(function () {
         // 🔒 Admin y Recepcionista (roles 1 y 3)
     Route::middleware(['rol:1,3'])->group(function () {
         Route::resource('clientes', ClienteController::class)->except(['destroy']);
+        Route::resource('autos', AutoController::class); // CRUD completo para autos
     });
 
 });
 
+// ── Rutas de autenticación (login, register, etc.) ─────────────────
 require __DIR__.'/auth.php';

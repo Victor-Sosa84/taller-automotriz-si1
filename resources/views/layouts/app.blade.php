@@ -220,6 +220,12 @@
             <span class="nav-icon">⊞</span> Dashboard
         </a>
 
+        <div class="nav-section">Consultas</div>
+        <a href="{{ route('historial.index') }}" class="nav-item {{ request()->routeIs('historial*') ? 'active' : '' }}">
+            <span class="nav-icon">📋</span> Historial
+        </a>
+
+
         @if(auth()->user()->esAdmin())
         <div class="nav-section">Administración</div>
         <a href="{{ route('usuarios.index') }}" class="nav-item {{ request()->routeIs('usuarios*') ? 'active' : '' }}">
@@ -236,6 +242,10 @@
         class="nav-item {{ request()->routeIs('clientes*') ? 'active' : '' }}">
             <span class="nav-icon">🧑</span> Clientes
         </a>
+        <a href="{{ route('autos.index') }}" class="nav-item {{ request()->routeIs('autos*') ? 'active' : '' }}">
+            <span class="nav-icon">🚗</span> Vehículos
+        </a>
+
         @endif
 
 
