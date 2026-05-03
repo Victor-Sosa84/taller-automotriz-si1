@@ -10,12 +10,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Str;
 
 class UsuarioController extends Controller
 {
-    // ── INDEX ────────────────────────────────────────────────────
     public function index(Request $request)
     {
         $query = Usuario::with(['persona', 'rol']);
@@ -41,44 +39,36 @@ class UsuarioController extends Controller
         return view('usuarios.index', compact('usuarios', 'roles'));
     }
 
-    // ── CREATE ───────────────────────────────────────────────────
     public function create()
     {
         $roles = Rol::all();
         return view('usuarios.create', compact('roles'));
     }
 
-    // ── STORE ────────────────────────────────────────────────────
-    // Primero inserta en persona, luego en usuario (respeta FK)
     public function store(Request $request)
     {
         $request->validate([
-            // Datos de persona
-            'ci'          => ['required', 'string', 'max:20', 'unique:persona,ci'],
-            'nombre'      => ['required', 'string', 'max:100'],
-            'telefono'    => ['nullable', 'string', 'max:20'],
-            'direccion'   => ['nullable', 'string', 'max:255'],
-            // Datos de usuario
-            'id_rol'          => ['required', 'exists:rol,id'],
-            // 'nombre_usuario'  => ['required', 'string', 'max:50', 'unique:usuario,nombre_usuario'],
-            'correo'          => ['nullable', 'email', 'max:100', 'unique:usuario,correo'],
-            'clave'           => ['required', 'confirmed', Password::defaults()],
+            'ci'        => ['required', 'string', 'max:20', 'unique:persona,ci'],
+            'nombre'    => ['required', 'string', 'max:100'],
+            'telefono'  => ['nullable', 'string', 'max:20'],
+            'direccion' => ['nullable', 'string', 'max:255'],
+            'id_rol'    => ['required', 'exists:rol,id'],
+            'correo'    => ['nullable', 'email', 'max:100', 'unique:usuario,correo'],
+            'clave'     => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
         ]);
 
         DB::transaction(function () use ($request) {
-            // 1. Crear o actualizar persona (puede existir como cliente ya)
             $persona = Persona::firstOrCreate(
                 ['ci' => $request->ci],
                 [
-                    'nombre'    => $request->nombre,
-                    'telefono'  => $request->telefono,
-                    'direccion' => $request->direccion,
+                    'nombre'      => $request->nombre,
+                    'telefono'    => $request->telefono,
+                    'direccion'   => $request->direccion,
                     'es_cliente'  => false,
                     'es_personal' => true,
                 ]
             );
 
-            // Si la persona ya existía (era cliente), la marcamos también como personal
             if (!$persona->wasRecentlyCreated) {
                 $persona->update([
                     'es_personal' => true,
@@ -88,47 +78,32 @@ class UsuarioController extends Controller
                 ]);
             }
 
-            // 1. Limpiar el nombre completo y pasarlo a minúsculas
-            $nombreCompleto = strtolower(trim($request->nombre));
-            $partes = explode(' ', $nombreCompleto);
-
-            // 2. Tomar la inicial del primer nombre y el primer apellido disponible
-            $primerNombre = $partes[0];
-            $primerApellido = (count($partes) > 1) ? $partes[1] : $partes[0];
-
-            // 3. Unir y limpiar (quita tildes y caracteres raros)
-            // Ejemplo: "Víctor Arispe" -> "varispe"
-            $baseUsuario = Str::slug(substr($primerNombre, 0, 1) . $primerApellido, '');
-
-            // 4. Verificar si ya existe para añadir un número si es necesario
-            $nombreGenerado = $baseUsuario;
+            $partes         = explode(' ', strtolower(trim($request->nombre)));
+            $base           = Str::slug(substr($partes[0], 0, 1) . ($partes[1] ?? $partes[0]), '');
+            $nombreUsuario  = $base;
             $i = 1;
-            while (Usuario::where('nombre_usuario', $nombreGenerado)->exists()) {
-                $nombreGenerado = $baseUsuario . $i;
-                $i++;
+            while (Usuario::where('nombre_usuario', $nombreUsuario)->exists()) {
+                $nombreUsuario = $base . $i++;
             }
 
-            // 5. Crear el usuario con el nombre automático
             $usuario = Usuario::create([
                 'id_rol'         => $request->id_rol,
                 'ci_personal'    => $persona->ci,
-                'nombre_usuario' => $nombreGenerado,
+                'nombre_usuario' => $nombreUsuario,
                 'clave'          => Hash::make($request->clave),
                 'correo'         => $request->correo,
             ]);
 
-            // 3. Registrar en bitácora
             Bitacora::registrar(
-                'Registro de Nuevo Usuario',
-                auth()->user()->id_usuario
+                'Registro de Usuario',
+                "usuario: {$nombreUsuario} — CI: {$persona->ci}"
             );
         });
 
         return redirect()->route('usuarios.index')
-                         ->with('success', "Usuario «{$request->nombre_usuario}» creado exitosamente.");
+                         ->with('success', "Usuario creado exitosamente.");
     }
 
-    // ── EDIT ─────────────────────────────────────────────────────
     public function edit(int $id)
     {
         $usuario = Usuario::with(['persona', 'rol'])->findOrFail($id);
@@ -136,59 +111,50 @@ class UsuarioController extends Controller
         return view('usuarios.edit', compact('usuario', 'roles'));
     }
 
-    // ── UPDATE ───────────────────────────────────────────────────
     public function update(Request $request, int $id)
     {
         $usuario = Usuario::with('persona')->findOrFail($id);
 
         $request->validate([
-            // Datos de persona
             'nombre'    => ['required', 'string', 'max:100'],
             'telefono'  => ['nullable', 'string', 'max:20'],
             'direccion' => ['nullable', 'string', 'max:255'],
-            // Datos de usuario
-            'id_rol'         => ['required', 'exists:rol,id'],
-            // 'nombre_usuario' => ['required', 'string', 'max:50',
-            //     Rule::unique('usuario', 'nombre_usuario')->ignore($id, 'id_usuario'),
-            // ],
-            'correo' => ['nullable', 'email', 'max:100',
+            'id_rol'    => ['required', 'exists:rol,id'],
+            'correo'    => ['nullable', 'email', 'max:100',
                 Rule::unique('usuario', 'correo')->ignore($id, 'id_usuario'),
             ],
-            'clave' => ['nullable', 'confirmed', Password::defaults()],
+            'clave'     => ['nullable', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
         ]);
 
         DB::transaction(function () use ($request, $usuario) {
-            // Actualizar persona
             $usuario->persona->update([
                 'nombre'    => $request->nombre,
                 'telefono'  => $request->telefono,
                 'direccion' => $request->direccion,
             ]);
 
-            // Actualizar usuario
-            $datosUsuario = [
-                'id_rol'         => $request->id_rol,
-                // 'nombre_usuario' => $request->nombre_usuario,
-                'correo'         => $request->correo,
-            ];
+            $datos = ['id_rol' => $request->id_rol, 'correo' => $request->correo];
 
             if ($request->filled('clave')) {
-                $datosUsuario['clave'] = Hash::make($request->clave);
+                $datos['clave'] = Hash::make($request->clave);
             }
 
-            $usuario->update($datosUsuario);
+            $usuario->update($datos);
+
+            Bitacora::registrar(
+                'Edición de Usuario',
+                "usuario: {$usuario->nombre_usuario}"
+            );
         });
 
         return redirect()->route('usuarios.index')
-                         ->with('success', "Usuario «{$request->nombre_usuario}» actualizado correctamente.");
+                         ->with('success', "Usuario actualizado correctamente.");
     }
 
-    // ── DESTROY ──────────────────────────────────────────────────
     public function destroy(int $id)
     {
         $usuario = Usuario::with('persona')->findOrFail($id);
 
-        // No permitir que el admin se elimine a sí mismo
         if ($usuario->id_usuario === auth()->user()->id_usuario) {
             return back()->with('error', 'No puedes eliminar tu propia cuenta.');
         }
@@ -196,16 +162,13 @@ class UsuarioController extends Controller
         $nombre = $usuario->nombre_usuario;
 
         DB::transaction(function () use ($usuario) {
-            // La bitácora tiene ON DELETE CASCADE, pero registramos antes de borrar
             Bitacora::registrar(
                 'Eliminación de Usuario',
-                auth()->user()->id_usuario
+                "usuario: {$usuario->nombre_usuario}"
             );
 
-            // Eliminar usuario (la persona se mantiene — puede ser cliente también)
             $usuario->delete();
 
-            // Si la persona ya no es cliente, también la marcamos como no-personal
             $persona = $usuario->persona;
             if ($persona && !$persona->es_cliente) {
                 $persona->update(['es_personal' => false]);

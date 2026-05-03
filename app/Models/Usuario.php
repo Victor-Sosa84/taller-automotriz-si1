@@ -99,4 +99,27 @@ class Usuario extends Authenticatable implements CanResetPasswordInterface
     {
         return $this->rol?->nombre ?? 'Sin rol';
     }
+        // ── Helper de permisos ───────────────────────────────────────
+    /**
+     * Verifica si el usuario tiene un permiso activo.
+     * Usa caché en memoria para no repetir queries en el mismo request.
+     *
+     * Uso en Blade:  @if(auth()->user()->puede('CLI_VIEW'))
+     * Uso en PHP:    auth()->user()->puede('CLI_VIEW')
+     */
+    public function puede(string $permiso): bool
+    {
+        // El admin siempre puede todo
+        if ($this->esAdmin()) return true;
+
+        // Cachear permisos del rol en memoria durante el request
+        if (!isset($this->_permisosCache)) {
+            $this->_permisosCache = $this->rol
+                ?->permisosActivos()
+                ->pluck('nombre')
+                ->toArray() ?? [];
+        }
+
+        return in_array($permiso, $this->_permisosCache);
+    }
 }

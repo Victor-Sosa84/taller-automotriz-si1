@@ -15,4 +15,28 @@ class Rol extends Model
     {
         return $this->hasMany(Usuario::class, 'id_rol');
     }
+
+    public function permisos()
+    {
+        return $this->belongsToMany(
+            Permiso::class,
+            'rol_permiso',
+            'id_rol',
+            'id_permiso'
+        )->withPivot('estado', 'fecha_registro', 'observaciones');
+    }
+
+    // Solo permisos activos — usado por el middleware
+    public function permisosActivos()
+    {
+        return $this->permisos()->wherePivot('estado', 'Activo');
+    }
+
+    // Verifica si el rol tiene un permiso activo
+    public function tienePermiso(string $nombrePermiso): bool
+    {
+        return $this->permisosActivos()
+                    ->where('nombre', $nombrePermiso)
+                    ->exists();
+    }
 }

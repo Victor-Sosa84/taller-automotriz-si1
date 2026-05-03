@@ -2,22 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bitacora;
 use App\Models\Persona;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class ClienteController extends Controller
 {
-    // ── INDEX ────────────────────────────────────────────────────
     public function index(Request $request)
     {
         $query = Persona::where('es_cliente', true);
 
         if ($search = $request->get('search')) {
             $query->where(function ($q) use ($search) {
-                $q->where('nombre',   'like', "%{$search}%")
-                  ->orWhere('ci',      'like', "%{$search}%")
-                  ->orWhere('telefono','like', "%{$search}%");
+                $q->where('nombre',    'like', "%{$search}%")
+                  ->orWhere('ci',       'like', "%{$search}%")
+                  ->orWhere('telefono', 'like', "%{$search}%");
             });
         }
 
@@ -26,13 +25,11 @@ class ClienteController extends Controller
         return view('clientes.index', compact('clientes'));
     }
 
-    // ── CREATE ───────────────────────────────────────────────────
     public function create()
     {
         return view('clientes.create');
     }
 
-    // ── STORE ────────────────────────────────────────────────────
     public function store(Request $request)
     {
         $request->validate([
@@ -42,7 +39,6 @@ class ClienteController extends Controller
             'direccion' => ['nullable', 'string', 'max:255'],
         ]);
 
-        // Si la persona ya existe como personal, la marcamos también como cliente
         $persona = Persona::find($request->ci);
 
         if ($persona) {
@@ -58,18 +54,40 @@ class ClienteController extends Controller
             ]);
         }
 
+        Bitacora::registrar('Registro de Cliente', "CI: {$request->ci} — {$request->nombre}");
+
         return redirect()->route('clientes.index')
                          ->with('success', "Cliente «{$request->nombre}» registrado correctamente.");
     }
 
-    // ── EDIT ─────────────────────────────────────────────────────
+    public function show(string $ci)
+    {
+        $cliente = Persona::where('es_cliente', true)->findOrFail($ci);
+
+        // Vehículos del cliente vía diagnósticos
+        $vehiculos = \App\Models\Diagnostico::where('ci_personal', $ci)
+            ->with('auto')
+            ->get()
+            ->pluck('auto')
+            ->filter()
+            ->unique('placa')
+            ->values();
+
+        // Historial de diagnósticos del cliente
+        $historial = \App\Models\Diagnostico::where('ci_personal', $ci)
+            ->with(['auto', 'proforma.ordenTrabajo'])
+            ->orderByDesc('fecha')
+            ->get();
+
+        return view('clientes.show', compact('cliente', 'vehiculos', 'historial'));
+    }
+
     public function edit(string $ci)
     {
         $cliente = Persona::where('es_cliente', true)->findOrFail($ci);
         return view('clientes.edit', compact('cliente'));
     }
 
-    // ── UPDATE ───────────────────────────────────────────────────
     public function update(Request $request, string $ci)
     {
         $cliente = Persona::where('es_cliente', true)->findOrFail($ci);
@@ -86,20 +104,9 @@ class ClienteController extends Controller
             'direccion' => $request->direccion,
         ]);
 
+        Bitacora::registrar('Edición de Cliente', "CI: {$ci} — {$request->nombre}");
+
         return redirect()->route('clientes.index')
                          ->with('success', "Cliente «{$request->nombre}» actualizado correctamente.");
-    }
-
-    // ── SHOW ─────────────────────────────────────────────────────
-    // Vista de perfil del cliente — desde aquí se accederá a sus vehículos
-    public function show(string $ci)
-    {
-        $cliente = Persona::where('es_cliente', true)
-                          ->with([
-                              // En el futuro: autos via diagnostico
-                          ])
-                          ->findOrFail($ci);
-
-        return view('clientes.show', compact('cliente'));
     }
 }

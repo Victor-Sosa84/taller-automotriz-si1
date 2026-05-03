@@ -3,12 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Auto;
+use App\Models\Bitacora;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class AutoController extends Controller
 {
-    // ── INDEX ────────────────────────────────────────────────────
     public function index(Request $request)
     {
         $query = Auto::query();
@@ -27,13 +26,11 @@ class AutoController extends Controller
         return view('autos.index', compact('autos'));
     }
 
-    // ── CREATE ───────────────────────────────────────────────────
     public function create()
     {
         return view('autos.create');
     }
 
-    // ── STORE ────────────────────────────────────────────────────
     public function store(Request $request)
     {
         $request->validate([
@@ -46,25 +43,24 @@ class AutoController extends Controller
 
         Auto::create($request->only(['placa', 'marca', 'modelo', 'anio', 'color']));
 
+        Bitacora::registrar('Registro de Vehículo', "Placa: {$request->placa}");
+
         return redirect()->route('autos.index')
-                         ->with('success', "Vehículo con placa «{$request->placa}» registrado correctamente.");
+                         ->with('success', "Vehículo «{$request->placa}» registrado correctamente.");
     }
 
-    // ── SHOW ─────────────────────────────────────────────────────
     public function show(string $placa)
     {
         $auto = Auto::with(['diagnosticos.persona'])->findOrFail($placa);
         return view('autos.show', compact('auto'));
     }
 
-    // ── EDIT ─────────────────────────────────────────────────────
     public function edit(string $placa)
     {
         $auto = Auto::findOrFail($placa);
         return view('autos.edit', compact('auto'));
     }
 
-    // ── UPDATE ───────────────────────────────────────────────────
     public function update(Request $request, string $placa)
     {
         $auto = Auto::findOrFail($placa);
@@ -78,20 +74,22 @@ class AutoController extends Controller
 
         $auto->update($request->only(['marca', 'modelo', 'anio', 'color']));
 
+        Bitacora::registrar('Edición de Vehículo', "Placa: {$placa}");
+
         return redirect()->route('autos.index')
                          ->with('success', "Vehículo «{$placa}» actualizado correctamente.");
     }
 
-    // ── DESTROY ──────────────────────────────────────────────────
-    // Solo se permite eliminar si no tiene diagnósticos asociados
     public function destroy(string $placa)
     {
         $auto = Auto::findOrFail($placa);
 
         if ($auto->tieneDiagnosticos()) {
             return back()->with('error',
-                "No se puede eliminar el vehículo «{$placa}» porque tiene diagnósticos u órdenes de trabajo registrados.");
+                "No se puede eliminar «{$placa}» — tiene diagnósticos registrados.");
         }
+
+        Bitacora::registrar('Eliminación de Vehículo', "Placa: {$placa}");
 
         $auto->delete();
 

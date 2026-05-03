@@ -12,7 +12,7 @@ return new class extends Migration
             $table->integer('id')->autoIncrement();
             $table->integer('id_usuario');
             $table->dateTime('fecha_hora')->useCurrent();
-            $table->string('accion', 50);
+            $table->string('accion', 255);
             $table->string('ip_equipo', 45)->nullable();
 
             $table->foreign('id_usuario')
