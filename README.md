@@ -101,7 +101,7 @@ MAIL_FROM_NAME="Taller Automotriz"
 ```
 
 > Crea la base de datos `db_taller_si1` en phpMyAdmin antes de continuar.
-> Credenciales Mailtrap: mailtrap.io → Email Testing → SMTP Settings → Laravel.
+> Las credenciales de Mailtrap se obtienen en mailtrap.io → Sandboxes → My Sandbox → SMTP Setting → Laravel 9+.
 
 ### 4. Migraciones y seeders
 ```bash
@@ -199,7 +199,10 @@ php artisan cache:clear
 php artisan route:clear
 
 # Vaciar sesiones activas
-php artisan session:flush
+php artisan tinker
+# Una vez adentro de tinker escribes:
+DB::table('sessions')->truncate();
+exit
 ```
 
 ---
@@ -207,6 +210,5 @@ php artisan session:flush
 ## Notas importantes
 
 - El `.env` **nunca** se sube al repositorio — cada desarrollador crea el suyo desde `.env.example`.
-- Las contraseñas del seeder son solo para **desarrollo**.
-- Para despliegue en la nube (Railway, Render) usar `SESSION_DRIVER=database` y configurar SMTP real.
-- La columna `bitacora.accion` es `varchar(255)` — suficiente para mensajes descriptivos completos.
+- Las contraseñas del seeder son solo para **desarrollo** — cambiarlas antes de producción.
+- Para despliegue en la nube se recomienda mantener `SESSION_DRIVER=database` y configurar un SMTP real en lugar de Mailtrap.
