@@ -21,6 +21,19 @@ Route::get('/', function () {
 // ── Rutas protegidas ──────────────────────────────────────────
 Route::middleware(['auth'])->group(function () {
 
+        Route::get('/api/persona/{ci}', function (string $ci) {
+        $persona = \App\Models\Persona::find($ci);
+        if (!$persona) return response()->json(null);
+        return response()->json([
+            'ci'        => $persona->ci,
+            'nombre'    => $persona->nombre,
+            'telefono'  => $persona->telefono,
+            'direccion' => $persona->direccion,
+            'es_cliente'  => $persona->es_cliente,
+            'es_personal' => $persona->es_personal,
+        ]);
+    })->name('api.persona');
+
     // Dashboard — redirige según rol (no necesita permiso específico)
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
