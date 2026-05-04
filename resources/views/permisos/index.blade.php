@@ -156,7 +156,7 @@ async function togglePermiso(idRol, idPermiso, activo, slugModulo) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 'Accept': 'application/json',
             },
             body: JSON.stringify({ id_rol: idRol, id_permiso: idPermiso, estado }),
