@@ -34,23 +34,26 @@
                     </label>
                     <div style="position:relative;">
                         <input type="text"
-                               id="ci-input"
-                               name="ci"
-                               value="{{ old('ci', $usuario?->ci_personal ?? '') }}"
-                               placeholder="Ej. 8512347"
-                               {{ $usuario ? 'readonly' : 'required' }}
-                               @if(!$usuario) oninput="buscarPersonaPorCI(this.value)" @endif
-                               autocomplete="off">
+                                id="ci-input"
+                                name="ci"
+                                value="{{ old('ci', $usuario?->ci_personal ?? '') }}"
+                                placeholder="Ej. 8512347"
+                                inputmode="numeric"
+                                pattern="[0-9]*"
+                                maxlength="12"
+                                {{ $usuario ? 'readonly' : 'required' }}
+                                @if(!$usuario) oninput="buscarPersonaPorCI(this.value)" @endif
+                                autocomplete="off">
                         <span id="ci-status" style="position:absolute; right:.75rem; top:50%;
-                              transform:translateY(-50%); font-size:.72rem; color:var(--muted); display:none;">
+                                transform:translateY(-50%); font-size:.72rem; color:var(--muted); display:none;">
                             buscando...
                         </span>
                     </div>
                     @error('ci') <span class="field-error">{{ $message }}</span> @enderror
 
                     <div id="persona-encontrada" style="display:none; margin-top:.4rem;
-                         background:rgba(245,166,35,.08); border:1px solid rgba(245,166,35,.25);
-                         border-radius:4px; padding:.5rem .75rem; font-size:.78rem; color:var(--accent);">
+                            background:rgba(245,166,35,.08); border:1px solid rgba(245,166,35,.25);
+                            border-radius:4px; padding:.5rem .75rem; font-size:.78rem; color:var(--accent);">
                         ⚡ Persona encontrada — datos autocargados.
                         <span id="persona-flags" style="color:var(--muted);"></span>
                     </div>
@@ -60,23 +63,31 @@
                 <div class="field-group {{ $errors->has('nombre') ? 'has-error' : '' }}">
                     <label>Nombre completo <span class="req">*</span></label>
                     <input type="text" id="nombre-input" name="nombre"
-                           value="{{ old('nombre', $usuario?->persona?->nombre ?? '') }}"
-                           placeholder="Ej. Carlos Mamani" required>
+                            value="{{ old('nombre', $usuario?->persona?->nombre ?? '') }}"
+                            placeholder="Ej. Carlos Mamani" required>
                     @error('nombre') <span class="field-error">{{ $message }}</span> @enderror
                 </div>
 
+                {{-- Teléfono --}}
                 <div class="field-group">
                     <label>Teléfono</label>
-                    <input type="text" id="telefono-input" name="telefono"
-                           value="{{ old('telefono', $usuario?->persona?->telefono ?? '') }}"
-                           placeholder="Ej. 72345678">
+                    <input type="text"
+                            id="telefono-input"
+                            name="telefono"
+                            inputmode="tel"
+                            pattern="[0-9+]*"
+                            maxlength="15"
+                            value="{{ old('telefono', $usuario?->persona?->telefono ?? '') }}"
+                            placeholder="Ej. 72345678"
+                            oninput="this.value = this.value.replace(/[^0-9+]/g, '')">
                 </div>
 
+                {{-- Dirección --}}
                 <div class="field-group">
                     <label>Dirección</label>
                     <input type="text" id="direccion-input" name="direccion"
-                           value="{{ old('direccion', $usuario?->persona?->direccion ?? '') }}"
-                           placeholder="Ej. Av. Banzer 4to Anillo">
+                            value="{{ old('direccion', $usuario?->persona?->direccion ?? '') }}"
+                            placeholder="Ej. Av. Banzer 4to Anillo">
                 </div>
 
             </div>
@@ -111,8 +122,8 @@
                 <div class="field-group {{ $errors->has('correo') ? 'has-error' : '' }}">
                     <label>Correo electrónico</label>
                     <input type="email" name="correo"
-                           value="{{ old('correo', $usuario?->correo ?? '') }}"
-                           placeholder="correo@taller.com">
+                            value="{{ old('correo', $usuario?->correo ?? '') }}"
+                            placeholder="correo@taller.com">
                     @error('correo') <span class="field-error">{{ $message }}</span> @enderror
                 </div>
 
@@ -124,8 +135,8 @@
                         @endif
                     </label>
                     <input type="password" name="clave"
-                           placeholder="Mínimo 8 caracteres"
-                           {{ !$usuario ? 'required' : '' }}>
+                            placeholder="Mínimo 8 caracteres"
+                            {{ !$usuario ? 'required' : '' }}>
                     @error('clave') <span class="field-error">{{ $message }}</span> @enderror
                 </div>
 
@@ -134,8 +145,8 @@
                         @if(!$usuario) <span class="req">*</span> @endif
                     </label>
                     <input type="password" name="clave_confirmation"
-                           placeholder="Repetir contraseña"
-                           {{ !$usuario ? 'required' : '' }}>
+                            placeholder="Repetir contraseña"
+                            {{ !$usuario ? 'required' : '' }}>
                 </div>
 
             </div>
@@ -157,6 +168,12 @@
 let _ciTimer = null;
 
 function buscarPersonaPorCI(ci) {
+    const soloNumeros = ci.replace(/\D/g, '');
+    if (soloNumeros !== ci) {
+        document.getElementById('ci-input').value = soloNumeros;
+        return;
+    }
+
     clearTimeout(_ciTimer);
     const status = document.getElementById('ci-status');
     const banner = document.getElementById('persona-encontrada');
@@ -176,18 +193,29 @@ function buscarPersonaPorCI(ci) {
             const res  = await fetch('/api/persona/' + encodeURIComponent(ci), {
                 headers: { 'Accept': 'application/json' }
             });
-            const data = await res.json();
+
+            const text = await res.text();
             status.style.display = 'none';
 
-            if (data) {
+            if (!text || text === 'null') {
+                banner.style.display = 'none';
+                return;
+            }
+
+            const data = JSON.parse(text);
+
+            if (data && data.ci) {
                 document.getElementById('nombre-input').value    = data.nombre    || '';
                 document.getElementById('telefono-input').value  = data.telefono  || '';
                 document.getElementById('direccion-input').value = data.direccion || '';
 
                 let flagTexto = '';
-                if (data.es_cliente && data.es_personal) flagTexto = '(ya es cliente y personal del taller)';
-                else if (data.es_cliente)  flagTexto = '(registrado como cliente — se agregará como personal)';
-                else if (data.es_personal) flagTexto = '(ya es personal del taller)';
+                if (data.es_cliente && data.es_personal)
+                    flagTexto = '(ya es cliente y personal del taller)';
+                else if (data.es_cliente)
+                    flagTexto = '(ya registrado como cliente — se agregará como personal)';
+                else if (data.es_personal)
+                    flagTexto = '(ya registrado como personal)';
 
                 flags.textContent    = ' ' + flagTexto;
                 banner.style.display = 'block';
@@ -196,6 +224,7 @@ function buscarPersonaPorCI(ci) {
             }
         } catch (e) {
             status.style.display = 'none';
+            banner.style.display = 'none';
         }
     }, 500);
 }

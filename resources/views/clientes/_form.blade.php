@@ -32,25 +32,26 @@
                 </label>
                 <div style="position:relative;">
                     <input type="text"
-                           id="ci-input"
-                           name="ci"
-                           value="{{ old('ci', $cliente?->ci ?? '') }}"
-                           placeholder="Ej. 8512347"
-                           {{ $cliente ? 'readonly' : 'required' }}
-                           @if(!$cliente) oninput="buscarPersonaPorCI(this.value)" @endif
-                           autocomplete="off">
-                    {{-- Indicador de búsqueda --}}
+                            id="ci-input"
+                            name="ci"
+                            value="{{ old('ci', $cliente?->ci ?? '') }}"
+                            placeholder="Ej. 8512347"
+                            inputmode="numeric"
+                            pattern="[0-9]*"
+                            maxlength="12"
+                            {{ $cliente ? 'readonly' : 'required' }}
+                            @if(!$cliente) oninput="buscarPersonaPorCI(this.value)" @endif
+                            autocomplete="off">
                     <span id="ci-status" style="position:absolute; right:.75rem; top:50%;
-                          transform:translateY(-50%); font-size:.72rem; color:var(--muted); display:none;">
+                            transform:translateY(-50%); font-size:.72rem; color:var(--muted); display:none;">
                         buscando...
                     </span>
                 </div>
                 @error('ci') <span class="field-error">{{ $message }}</span> @enderror
 
-                {{-- Banner cuando se encuentra persona existente --}}
                 <div id="persona-encontrada" style="display:none; margin-top:.4rem;
-                     background:rgba(245,166,35,.08); border:1px solid rgba(245,166,35,.25);
-                     border-radius:4px; padding:.5rem .75rem; font-size:.78rem; color:var(--accent);">
+                        background:rgba(245,166,35,.08); border:1px solid rgba(245,166,35,.25);
+                        border-radius:4px; padding:.5rem .75rem; font-size:.78rem; color:var(--accent);">
                     ⚡ Persona encontrada — datos autocargados.
                     <span id="persona-flags" style="color:var(--muted);"></span>
                 </div>
@@ -60,25 +61,31 @@
             <div class="field-group {{ $errors->has('nombre') ? 'has-error' : '' }}">
                 <label>Nombre completo <span class="req">*</span></label>
                 <input type="text" id="nombre-input" name="nombre"
-                       value="{{ old('nombre', $cliente?->nombre ?? '') }}"
-                       placeholder="Ej. Juan Pérez" required>
+                        value="{{ old('nombre', $cliente?->nombre ?? '') }}"
+                        placeholder="Ej. Juan Pérez" required>
                 @error('nombre') <span class="field-error">{{ $message }}</span> @enderror
             </div>
 
             {{-- Teléfono --}}
             <div class="field-group">
                 <label>Teléfono</label>
-                <input type="text" id="telefono-input" name="telefono"
-                       value="{{ old('telefono', $cliente?->telefono ?? '') }}"
-                       placeholder="Ej. 72345678">
+                <input type="text"
+                        id="telefono-input"
+                        name="telefono"
+                        inputmode="tel"
+                        pattern="[0-9+]*"
+                        maxlength="15"
+                        value="{{ old('telefono', $cliente?->telefono ?? '') }}"
+                        placeholder="Ej. 72345678"
+                        oninput="this.value = this.value.replace(/[^0-9+]/g, '')">
             </div>
 
             {{-- Dirección --}}
             <div class="field-group">
                 <label>Dirección</label>
                 <input type="text" id="direccion-input" name="direccion"
-                       value="{{ old('direccion', $cliente?->direccion ?? '') }}"
-                       placeholder="Ej. Av. Principal 123">
+                        value="{{ old('direccion', $cliente?->direccion ?? '') }}"
+                        placeholder="Ej. Av. Principal 123">
             </div>
 
         </div>
@@ -99,10 +106,17 @@
 let _ciTimer = null;
 
 function buscarPersonaPorCI(ci) {
+    // Solo permite números
+    const soloNumeros = ci.replace(/\D/g, '');
+    if (soloNumeros !== ci) {
+        document.getElementById('ci-input').value = soloNumeros;
+        return;
+    }
+
     clearTimeout(_ciTimer);
-    const status   = document.getElementById('ci-status');
-    const banner   = document.getElementById('persona-encontrada');
-    const flags    = document.getElementById('persona-flags');
+    const status = document.getElementById('ci-status');
+    const banner = document.getElementById('persona-encontrada');
+    const flags  = document.getElementById('persona-flags');
 
     if (ci.length < 4) {
         banner.style.display = 'none';
@@ -118,20 +132,29 @@ function buscarPersonaPorCI(ci) {
             const res  = await fetch('/api/persona/' + encodeURIComponent(ci), {
                 headers: { 'Accept': 'application/json' }
             });
-            const data = await res.json();
+
+            const text = await res.text();
             status.style.display = 'none';
 
-            if (data) {
-                // Autocompletar campos
+            if (!text || text === 'null') {
+                banner.style.display = 'none';
+                return;
+            }
+
+            const data = JSON.parse(text);
+
+            if (data && data.ci) {
                 document.getElementById('nombre-input').value    = data.nombre    || '';
                 document.getElementById('telefono-input').value  = data.telefono  || '';
                 document.getElementById('direccion-input').value = data.direccion || '';
 
-                // Mostrar banner con info de flags
                 let flagTexto = '';
-                if (data.es_cliente && data.es_personal) flagTexto = '(ya es cliente y personal)';
-                else if (data.es_cliente)  flagTexto = '(ya registrado como cliente)';
-                else if (data.es_personal) flagTexto = '(ya registrado como personal)';
+                if (data.es_cliente && data.es_personal)
+                    flagTexto = '(ya es cliente y personal del taller)';
+                else if (data.es_cliente)
+                    flagTexto = '(ya registrado como cliente)';
+                else if (data.es_personal)
+                    flagTexto = '(ya registrado como personal — se agregará como cliente)';
 
                 flags.textContent    = ' ' + flagTexto;
                 banner.style.display = 'block';
@@ -140,8 +163,9 @@ function buscarPersonaPorCI(ci) {
             }
         } catch (e) {
             status.style.display = 'none';
+            banner.style.display = 'none';
         }
-    }, 500); // espera 500ms después de que el usuario deja de escribir
+    }, 500);
 }
 </script>
 @endpush
