@@ -189,7 +189,7 @@
             <div class="error-msg">{{ $errors->first() }}</div>
         @endif
 
-        <form method="POST" action="{{ route('password.store') }}">
+        <form method="POST" action="{{ url('/password.store') }}">
             @csrf
 
             {{-- Token oculto que Laravel necesita para validar el reset --}}

@@ -186,7 +186,7 @@
             <div class="error-msg">{{ $errors->first() }}</div>
         @endif
 
-        <form method="POST" action="{{ route('login') }}">
+        <form method="POST" action="{{ url('/login') }}">
             @csrf
 
             <div class="form-group">
