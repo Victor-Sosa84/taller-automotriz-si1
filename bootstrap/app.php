@@ -11,6 +11,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->trustProxies(at: '*'); // Confía en el proxy de Railway
         $middleware->alias([
             'rol' => \App\Http\Middleware\CheckRol::class,
             'permiso' => \App\Http\Middleware\CheckPermiso::class,  // ← agregar
