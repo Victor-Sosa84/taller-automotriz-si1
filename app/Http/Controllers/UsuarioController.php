@@ -48,36 +48,49 @@ class UsuarioController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'ci'        => ['required', 'string', 'max:20', 'unique:persona,ci'],
-            'nombre'    => ['required', 'string', 'max:100'],
-            'telefono'  => ['nullable', 'string', 'max:20'],
-            'direccion' => ['nullable', 'string', 'max:255'],
-            'id_rol'    => ['required', 'exists:rol,id'],
-            'correo'    => ['nullable', 'email', 'max:100', 'unique:usuario,correo'],
-            'clave'     => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
+            'ci'         => ['required', 'string', 'max:20'], // Sin unique para permitir la búsqueda
+            'nombre'     => ['required', 'string', 'max:100'],
+            'telefono'   => ['nullable', 'string', 'max:20'],
+            'direccion'  => ['nullable', 'string', 'max:255'],
+            'id_rol'     => ['required', 'exists:rol,id'],
+            'correo'     => ['nullable', 'email', 'max:100', 'unique:usuario,correo'],
+            'clave'      => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
         ]);
 
-        DB::transaction(function () use ($request) {
-            $persona = Persona::firstOrCreate(
-                ['ci' => $request->ci],
-                [
+        return DB::transaction(function () use ($request) {
+            // 1. Buscamos si la persona ya existe
+            $persona = Persona::where('ci', $request->ci)->first();
+
+            if ($persona) {
+                // 2. VERIFICACIÓN CRÍTICA: ¿Ya tiene una cuenta de usuario?
+                $usuarioExistente = Usuario::where('ci_personal', $persona->ci)->first();
+                
+                if ($usuarioExistente) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->with('error', "La persona con CI {$request->ci} ya tiene una cuenta de usuario.");
+                }
+
+                // 3. Si existe pero no tiene usuario (era solo cliente), la actualizamos
+                $persona->update([
+                    'nombre'      => $request->nombre,
+                    'telefono'    => $request->telefono ?? $persona->telefono,
+                    'direccion'   => $request->direccion ?? $persona->direccion,
+                    'es_personal' => true,
+                ]);
+            } else {
+                // 4. Si no existe, creamos la persona desde cero
+                $persona = Persona::create([
+                    'ci'          => $request->ci,
                     'nombre'      => $request->nombre,
                     'telefono'    => $request->telefono,
                     'direccion'   => $request->direccion,
                     'es_cliente'  => false,
                     'es_personal' => true,
-                ]
-            );
-
-            if (!$persona->wasRecentlyCreated) {
-                $persona->update([
-                    'es_personal' => true,
-                    'nombre'      => $request->nombre,
-                    'telefono'    => $request->telefono ?? $persona->telefono,
-                    'direccion'   => $request->direccion ?? $persona->direccion,
                 ]);
             }
 
+            // 5. Generar nombre de usuario único (tu lógica actual que está muy bien)
             $partes         = explode(' ', strtolower(trim($request->nombre)));
             $base           = Str::slug(substr($partes[0], 0, 1) . ($partes[1] ?? $partes[0]), '');
             $nombreUsuario  = $base;
@@ -86,7 +99,8 @@ class UsuarioController extends Controller
                 $nombreUsuario = $base . $i++;
             }
 
-            $usuario = Usuario::create([
+            // 6. Creamos el usuario vinculado a la persona
+            Usuario::create([
                 'id_rol'         => $request->id_rol,
                 'ci_personal'    => $persona->ci,
                 'nombre_usuario' => $nombreUsuario,
@@ -94,14 +108,11 @@ class UsuarioController extends Controller
                 'correo'         => $request->correo,
             ]);
 
-            Bitacora::registrar(
-                'Registro de Usuario',
-                "usuario: {$nombreUsuario} — CI: {$persona->ci}"
-            );
-        });
+            Bitacora::registrar('Registro de Usuario', "usuario: {$nombreUsuario} — CI: {$persona->ci}");
 
-        return redirect()->route('usuarios.index')
-                         ->with('success', "Usuario creado exitosamente.");
+            return redirect()->route('usuarios.index')
+                            ->with('success', "Usuario «{$nombreUsuario}» creado exitosamente.");
+        });
     }
 
     public function edit(int $id)

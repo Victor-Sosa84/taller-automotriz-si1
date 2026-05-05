@@ -33,17 +33,33 @@ class ClienteController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'ci'        => ['required', 'string', 'max:20', 'unique:persona,ci'],
+            'ci'        => ['required', 'string', 'max:20'],
             'nombre'    => ['required', 'string', 'max:100'],
             'telefono'  => ['nullable', 'string', 'max:20'],
             'direccion' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $persona = Persona::find($request->ci);
+        $persona = Persona::where('ci', $request->ci)->first();
 
         if ($persona) {
-            $persona->update(['es_cliente' => true]);
+            // CASO 1: Ya es cliente. Bloqueamos para que no crea que registró a alguien nuevo.
+            if ($persona->es_cliente) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', "La persona con CI {$request->ci} ya está registrada como cliente.");
+            }
+
+            // CASO 2: Existe pero solo como personal. Lo "ascendemos" a cliente y actualizamos sus datos.
+            $persona->update([
+                'nombre'      => $request->nombre,
+                'telefono'    => $request->telefono,
+                'direccion'   => $request->direccion,
+                'es_cliente'  => true,
+            ]);
+            
+            $mensaje = "La persona ya existía como personal y ahora también es cliente.";
         } else {
+            // CASO 3: No existe. Registro limpio.
             Persona::create([
                 'ci'          => $request->ci,
                 'nombre'      => $request->nombre,
@@ -52,12 +68,12 @@ class ClienteController extends Controller
                 'es_cliente'  => true,
                 'es_personal' => false,
             ]);
+            $mensaje = "Cliente «{$request->nombre}» registrado correctamente.";
         }
 
         Bitacora::registrar('Registro de Cliente', "CI: {$request->ci} — {$request->nombre}");
 
-        return redirect()->route('clientes.index')
-                         ->with('success', "Cliente «{$request->nombre}» registrado correctamente.");
+        return redirect()->route('clientes.index')->with('success', $mensaje);
     }
 
     public function show(string $ci)
