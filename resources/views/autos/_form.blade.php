@@ -35,7 +35,7 @@
                         name="placa"
                         value="{{ old('placa', $auto?->placa ?? '') }}"
                         placeholder="Ej. 3046FIJ"
-                        maxlength="8"
+                        maxlength="9"
                         style="text-transform:uppercase; letter-spacing:.05em;"
                         {{ $auto ? 'readonly' : 'required' }}
                         @if(!$auto)
@@ -106,10 +106,10 @@
 <script>
 function formatearPlaca(input) {
     // Convertir a mayúsculas y remover caracteres no válidos
-    let val = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    let val = input.value.toUpperCase().replace(/[^A-Z0-9\-]/g, '');
 
-    // Limitar a 8 caracteres máximo
-    val = val.slice(0, 8);
+    // Limitar a 9 caracteres máximo
+    val = val.slice(0, 9);
     input.value = val;
 
     // Validación visual en tiempo real
