@@ -9,10 +9,14 @@ class RolSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::table('rol')->insert([
-            ['id' => 1, 'nombre' => 'Administrador',  'descripcion' => 'Control total del sistema'],
-            ['id' => 2, 'nombre' => 'Mecanico Jefe',  'descripcion' => 'Asigna tareas y cierra órdenes'],
-            ['id' => 3, 'nombre' => 'Recepcionista',  'descripcion' => 'Gestiona ingresos y clientes'],
+        // Un solo rol base — el resto se crean desde la interfaz
+        // El usuario id=1 (Admin Principal) tiene acceso total sin consultar rol_permiso
+        DB::table('rol')->insertOrIgnore([
+            [
+                'id'          => 1,
+                'nombre'      => 'Administrador del Sistema',
+                'descripcion' => 'Acceso total al sistema. Gestiona usuarios, roles y privilegios.',
+            ],
         ]);
     }
 }
