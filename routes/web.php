@@ -7,6 +7,7 @@ use App\Http\Controllers\AutoController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HistorialController;
 use App\Http\Controllers\PermisoController;
+use App\Http\Controllers\RolController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -18,82 +19,100 @@ Route::get('/', function () {
         : redirect()->route('login');
 });
 
-// ── Rutas protegidas ──────────────────────────────────────────
+// ── API interna (autenticada) ─────────────────────────────────
 Route::middleware(['auth'])->group(function () {
 
-        Route::get('/api/persona/{ci}', function (string $ci) {
-        $persona = \App\Models\Persona::find($ci);
+    Route::get('/api/persona/{ci}', function (string $ci) {
+        $persona = \App\Models\Persona::where('ci', $ci)->first();
         if (!$persona) return response()->json(null);
         return response()->json([
-            'ci'        => $persona->ci,
-            'nombre'    => $persona->nombre,
-            'telefono'  => $persona->telefono,
-            'direccion' => $persona->direccion,
+            'ci'          => $persona->ci,
+            'nombre'      => $persona->nombre,
+            'telefono'    => $persona->telefono,
+            'direccion'   => $persona->direccion,
             'es_cliente'  => $persona->es_cliente,
             'es_personal' => $persona->es_personal,
         ]);
     })->name('api.persona');
 
-    // Dashboard — redirige según rol (no necesita permiso específico)
+    // ── Dashboard ─────────────────────────────────────────────
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // ── Solo Admin (rol:1) ────────────────────────────────────
-    Route::middleware(['rol:1'])->group(function () {
-        Route::get('/dashboard/admin', [DashboardController::class, 'admin'])->name('dashboard.admin');
-
-        // Usuarios — protegidos por permiso
-        Route::get('/usuarios',                  [UsuarioController::class, 'index'])->name('usuarios.index')->middleware('permiso:USU_VIEW');
-        Route::get('/usuarios/create',           [UsuarioController::class, 'create'])->name('usuarios.create')->middleware('permiso:USU_CREATE');
-        Route::post('/usuarios',                 [UsuarioController::class, 'store'])->name('usuarios.store')->middleware('permiso:USU_CREATE');
-        Route::get('/usuarios/{id}/edit',        [UsuarioController::class, 'edit'])->name('usuarios.edit')->middleware('permiso:USU_EDIT');
-        Route::put('/usuarios/{id}',             [UsuarioController::class, 'update'])->name('usuarios.update')->middleware('permiso:USU_EDIT');
-        Route::delete('/usuarios/{id}',          [UsuarioController::class, 'destroy'])->name('usuarios.destroy')->middleware('permiso:USU_EDIT');
-
-        // Cargos
-        Route::get('/usuarios/{id}/cargos',          [CargoController::class, 'index'])->name('cargos.index');
-        Route::post('/usuarios/{id}/cargos',         [CargoController::class, 'store'])->name('cargos.store');
-        Route::delete('/usuarios/{id}/cargos/{tipo}', [CargoController::class, 'destroy'])->name('cargos.destroy');
-
-        // Bitácora
-        Route::get('/bitacora', [BitacoraController::class, 'index'])->name('bitacora.index')->middleware('permiso:BIT_VIEW');
-
-        // Permisos
-        Route::get('/permisos',         [PermisoController::class, 'index'])->name('permisos.index');
-        Route::post('/permisos/toggle', [PermisoController::class, 'toggle'])->name('permisos.toggle');
+    // ── Gestión de usuarios y permisos (solo id=1 o con permiso) ─
+    Route::middleware(['permiso:CU13_BUS'])->group(function () {
+        Route::get('/usuarios', [UsuarioController::class, 'index'])->name('usuarios.index');
+    });
+    Route::middleware(['permiso:CU13_ADD'])->group(function () {
+        Route::get('/usuarios/create', [UsuarioController::class, 'create'])->name('usuarios.create');
+        Route::post('/usuarios',       [UsuarioController::class, 'store'])->name('usuarios.store');
+    });
+    Route::middleware(['permiso:CU13_MOD'])->group(function () {
+        Route::get('/usuarios/{id}/edit', [UsuarioController::class, 'edit'])->name('usuarios.edit');
+        Route::put('/usuarios/{id}',      [UsuarioController::class, 'update'])->name('usuarios.update');
+    });
+    Route::middleware(['permiso:CU13_ELI'])->group(function () {
+        Route::delete('/usuarios/{id}', [UsuarioController::class, 'destroy'])->name('usuarios.destroy');
     });
 
-    // ── Solo Mecánico (rol:2) ─────────────────────────────────
-    Route::middleware(['rol:2'])->group(function () {
-        Route::get('/dashboard/mecanico', [DashboardController::class, 'mecanico'])->name('dashboard.mecanico');
+    // Cargos — parte de gestión de usuarios
+    Route::get('/usuarios/{id}/cargos',           [CargoController::class, 'index'])->name('cargos.index');
+    Route::post('/usuarios/{id}/cargos',          [CargoController::class, 'store'])->name('cargos.store');
+    Route::delete('/usuarios/{id}/cargos/{tipo}', [CargoController::class, 'destroy'])->name('cargos.destroy');
+
+    // Permisos (privilegios) — solo quien tenga CU13_PRI o sea id=1
+    Route::middleware(['permiso:CU13_PRI'])->group(function () {
+        Route::get('/permisos',                 [PermisoController::class, 'index'])->name('permisos.index');
+        Route::post('/permisos/toggle',         [PermisoController::class, 'toggle'])->name('permisos.toggle');
+        Route::post('/permisos/toggle-cu',      [PermisoController::class, 'toggleCU'])->name('permisos.toggleCU');
+        Route::post('/permisos/toggle-paquete', [PermisoController::class, 'togglePaquete'])->name('permisos.togglePaquete');
     });
 
-    // ── Solo Recepcionista (rol:3) ────────────────────────────
-    Route::middleware(['rol:3'])->group(function () {
-        Route::get('/dashboard/recepcionista', [DashboardController::class, 'recepcionista'])->name('dashboard.recepcionista');
+    // Roles (perfiles) — CRUD dinámico
+    Route::middleware(['permiso:CU13_PRI'])->group(function () {
+        Route::resource('roles', RolController::class)->except(['show']);
     });
 
-    // ── Admin y Recepcionista — Clientes ──────────────────────
-    Route::middleware(['rol:1,3'])->group(function () {
-        Route::get('/clientes',              [ClienteController::class, 'index'])->name('clientes.index')->middleware('permiso:CLI_VIEW');
-        Route::get('/clientes/create',       [ClienteController::class, 'create'])->name('clientes.create')->middleware('permiso:CLI_CREATE');
-        Route::post('/clientes',             [ClienteController::class, 'store'])->name('clientes.store')->middleware('permiso:CLI_CREATE');
-        Route::get('/clientes/{ci}',         [ClienteController::class, 'show'])->name('clientes.show')->middleware('permiso:CLI_VIEW');
-        Route::get('/clientes/{ci}/edit',    [ClienteController::class, 'edit'])->name('clientes.edit')->middleware('permiso:CLI_EDIT');
-        Route::put('/clientes/{ci}',         [ClienteController::class, 'update'])->name('clientes.update')->middleware('permiso:CLI_EDIT');
-
-        // Vehículos
-        Route::get('/autos',              [AutoController::class, 'index'])->name('autos.index')->middleware('permiso:VEH_VIEW');
-        Route::get('/autos/create',       [AutoController::class, 'create'])->name('autos.create')->middleware('permiso:VEH_CREATE');
-        Route::post('/autos',             [AutoController::class, 'store'])->name('autos.store')->middleware('permiso:VEH_CREATE');
-        Route::get('/autos/{placa}',      [AutoController::class, 'show'])->name('autos.show')->middleware('permiso:VEH_VIEW');
-        Route::get('/autos/{placa}/edit', [AutoController::class, 'edit'])->name('autos.edit')->middleware('permiso:VEH_EDIT');
-        Route::put('/autos/{placa}',      [AutoController::class, 'update'])->name('autos.update')->middleware('permiso:VEH_EDIT');
-        Route::delete('/autos/{placa}',   [AutoController::class, 'destroy'])->name('autos.destroy')->middleware('permiso:VEH_DELETE');
+    // Bitácora
+    Route::middleware(['permiso:CU21_BUS'])->group(function () {
+        Route::get('/bitacora', [BitacoraController::class, 'index'])->name('bitacora.index');
     });
 
-    // ── Todos los roles — Historial ───────────────────────────
-    Route::get('/historial',         [HistorialController::class, 'index'])->name('historial.index')->middleware('permiso:HIST_VIEW');
-    Route::get('/historial/{placa}', [HistorialController::class, 'show'])->name('historial.show')->middleware('permiso:HIST_VIEW');
+    // ── Clientes ──────────────────────────────────────────────
+    Route::middleware(['permiso:CU01_BUS'])->group(function () {
+        Route::get('/clientes',       [ClienteController::class, 'index'])->name('clientes.index');
+        Route::get('/clientes/{ci}',  [ClienteController::class, 'show'])->name('clientes.show');
+    });
+    Route::middleware(['permiso:CU01_ADD'])->group(function () {
+        Route::get('/clientes/create', [ClienteController::class, 'create'])->name('clientes.create');
+        Route::post('/clientes',       [ClienteController::class, 'store'])->name('clientes.store');
+    });
+    Route::middleware(['permiso:CU01_MOD'])->group(function () {
+        Route::get('/clientes/{ci}/edit', [ClienteController::class, 'edit'])->name('clientes.edit');
+        Route::put('/clientes/{ci}',      [ClienteController::class, 'update'])->name('clientes.update');
+    });
+
+    // ── Vehículos ─────────────────────────────────────────────
+    Route::middleware(['permiso:CU02_BUS'])->group(function () {
+        Route::get('/autos',          [AutoController::class, 'index'])->name('autos.index');
+        Route::get('/autos/{placa}',  [AutoController::class, 'show'])->name('autos.show');
+    });
+    Route::middleware(['permiso:CU02_ADD'])->group(function () {
+        Route::get('/autos/create', [AutoController::class, 'create'])->name('autos.create');
+        Route::post('/autos',       [AutoController::class, 'store'])->name('autos.store');
+    });
+    Route::middleware(['permiso:CU02_MOD'])->group(function () {
+        Route::get('/autos/{placa}/edit', [AutoController::class, 'edit'])->name('autos.edit');
+        Route::put('/autos/{placa}',      [AutoController::class, 'update'])->name('autos.update');
+    });
+    Route::middleware(['permiso:CU02_ELI'])->group(function () {
+        Route::delete('/autos/{placa}', [AutoController::class, 'destroy'])->name('autos.destroy');
+    });
+
+    // ── Historial ─────────────────────────────────────────────
+    Route::middleware(['permiso:CU03_BUS'])->group(function () {
+        Route::get('/historial',          [HistorialController::class, 'index'])->name('historial.index');
+        Route::get('/historial/{placa}',  [HistorialController::class, 'show'])->name('historial.show');
+    });
 
 });
 

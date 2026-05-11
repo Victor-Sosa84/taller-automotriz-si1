@@ -79,38 +79,31 @@ class Usuario extends Authenticatable implements CanResetPasswordInterface
         return $this->hasMany(Bitacora::class, 'id_usuario');
     }
 
-    // ── Helpers de rol ───────────────────────────────────────────
-    public function esAdmin(): bool
-    {
-        return (int) $this->id_rol === 1;
-    }
-
-    public function esMecanico(): bool
-    {
-        return (int) $this->id_rol === 2;
-    }
-
-    public function esRecepcionista(): bool
-    {
-        return (int) $this->id_rol === 3;
-    }
-
+    // ── Helper de nombre de rol ───────────────────────────────────
     public function getNombreRolAttribute(): string
     {
+        if ((int) $this->id_usuario === 1) return 'Admin Principal';
         return $this->rol?->nombre ?? 'Sin rol';
     }
-        // ── Helper de permisos ───────────────────────────────────────
+
+    // ── Es el administrador principal (id=1) ──────────────────────
+    public function esAdminPrincipal(): bool
+    {
+        return (int) $this->id_usuario === 1;
+    }
+
+    // ── Helper de permisos ───────────────────────────────────────
     /**
      * Verifica si el usuario tiene un permiso activo.
-     * Usa caché en memoria para no repetir queries en el mismo request.
+     * El usuario id=1 siempre puede todo sin consultar BD.
      *
-     * Uso en Blade:  @if(auth()->user()->puede('CLI_VIEW'))
-     * Uso en PHP:    auth()->user()->puede('CLI_VIEW')
+     * Uso en Blade:  @if(auth()->user()->puede('CU01_ADD'))
+     * Uso en PHP:    auth()->user()->puede('CU01_ADD')
      */
     public function puede(string $permiso): bool
     {
-        // El admin siempre puede todo
-        if ($this->esAdmin()) return true;
+        // Admin principal (id=1) siempre puede todo
+        if ($this->esAdminPrincipal()) return true;
 
         // Cachear permisos del rol en memoria durante el request
         if (!isset($this->_permisosCache)) {
@@ -121,5 +114,38 @@ class Usuario extends Authenticatable implements CanResetPasswordInterface
         }
 
         return in_array($permiso, $this->_permisosCache);
+    }
+
+    // ── Verifica acceso a un CU completo (cualquier permiso del CU) ──
+    public function puedeCU(string $cu): bool
+    {
+        if ($this->esAdminPrincipal()) return true;
+
+        if (!isset($this->_permisosCache)) {
+            $this->_permisosCache = $this->rol
+                ?->permisosActivos()
+                ->pluck('nombre')
+                ->toArray() ?? [];
+        }
+
+        return collect($this->_permisosCache)
+            ->contains(fn($p) => str_starts_with($p, $cu . '_'));
+    }
+
+    // ── Verifica acceso a un paquete completo ─────────────────────
+    public function puedePaquete(string $paquete): bool
+    {
+        if ($this->esAdminPrincipal()) return true;
+
+        // Obtener permisos del paquete
+        $permisosDelPaquete = \App\Models\Permiso::where('paquete', 'like', $paquete . '%')
+            ->pluck('nombre')
+            ->toArray();
+
+        foreach ($permisosDelPaquete as $p) {
+            if ($this->puede($p)) return true;
+        }
+
+        return false;
     }
 }

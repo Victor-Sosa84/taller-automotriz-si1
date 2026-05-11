@@ -3,57 +3,34 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bitacora;
+use App\Models\Persona;
 use App\Models\Usuario;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
     /**
-     * Redirige al dashboard correcto según el rol del usuario autenticado.
-     * Esta es la ruta raíz post-login.
+     * Dashboard genérico — muestra stats según permisos del usuario.
+     * Ya no redirige por rol hardcodeado.
      */
     public function index()
     {
-        $usuario = auth()->user();
+        $usuario = Auth::user();
 
-        return match ((int) $usuario->id_rol) {
-            1 => redirect()->route('dashboard.admin'),
-            2 => redirect()->route('dashboard.mecanico'),
-            3 => redirect()->route('dashboard.recepcionista'),
-            default => abort(403, 'Rol no reconocido.'),
-        };
-    }
+        $stats = [
+            'totalUsuarios' => $usuario->puede('CU13_BUS')
+                ? Usuario::count() : null,
+            'totalClientes' => $usuario->puede('CU01_BUS')
+                ? Persona::where('es_cliente', true)->count() : null,
+            'totalPersonal' => $usuario->puede('CU13_BUS')
+                ? Persona::where('es_personal', true)->count() : null,
+        ];
 
-    // ── Admin ────────────────────────────────────────────────────
-    public function admin()
-    {
-        $totalUsuarios    = Usuario::count();
-        $totalPersonal    = \App\Models\Persona::where('es_personal', 1)->count();
-        $totalClientes    = \App\Models\Persona::where('es_cliente', 1)->count();
-        $ultimasBitacoras = \App\Models\Bitacora::with('usuario')
-                                ->orderByDesc('fecha_hora')
-                                ->limit(5)
-                                ->get();
+        $ultimasBitacoras = $usuario->puede('CU21_BUS')
+            ? Bitacora::with('usuario')->orderByDesc('fecha_hora')->limit(5)->get()
+            : collect();
 
-        return view('dashboard.admin', compact(
-            'totalUsuarios',
-            'totalPersonal',
-            'totalClientes',
-            'ultimasBitacoras'
-        ));
-    }
-
-    // ── Mecánico ─────────────────────────────────────────────────
-    public function mecanico()
-    {
-        // Aquí en el futuro podrás cargar las órdenes de trabajo asignadas
-        return view('dashboard.mecanico');
-    }
-
-    // ── Recepcionista ────────────────────────────────────────────
-    public function recepcionista()
-    {
-        // Aquí en el futuro podrás cargar proformas, clientes del día, etc.
-        return view('dashboard.recepcionista');
+        return view('dashboard.index', compact('stats', 'ultimasBitacoras'));
     }
 }

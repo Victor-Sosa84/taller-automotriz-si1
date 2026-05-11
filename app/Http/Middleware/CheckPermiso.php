@@ -4,24 +4,28 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckPermiso
 {
     /**
-     * Uso en rutas:
-     *   middleware('permiso:CLI_VIEW')
-     *   middleware('permiso:CLI_CREATE,CLI_EDIT')  ← requiere CUALQUIERA de los dos
+     * Uso en rutas: middleware('permiso:CU01_ADD')
+     *               middleware('permiso:CU01_ADD,CU01_MOD')  ← requiere CUALQUIERA
      *
-     * El middleware verifica si el rol del usuario tiene al menos uno
-     * de los permisos listados con estado 'Activo' en rol_permiso.
+     * El usuario id=1 (Admin Principal) bypassa todo sin consultar BD.
      */
     public function handle(Request $request, Closure $next, string ...$permisos): Response
     {
-        $usuario = auth()->user();
+        $usuario = Auth::user();
 
         if (!$usuario) {
             return redirect()->route('login');
+        }
+
+        // Usuario id=1 tiene acceso total — no consulta rol_permiso
+        if ((int) $usuario->id_usuario === 1) {
+            return $next($request);
         }
 
         $rol = $usuario->rol;
@@ -30,7 +34,6 @@ class CheckPermiso
             return $this->sinPermiso($request, 'Tu cuenta no tiene un rol asignado.');
         }
 
-        // Verifica si tiene al menos uno de los permisos requeridos
         foreach ($permisos as $permiso) {
             if ($rol->tienePermiso($permiso)) {
                 return $next($request);
@@ -49,8 +52,6 @@ class CheckPermiso
             return response()->json(['error' => $mensaje], 403);
         }
 
-        return redirect()
-            ->route('dashboard')
-            ->with('error', $mensaje);
+        return redirect()->route('dashboard')->with('error', $mensaje);
     }
 }

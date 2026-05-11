@@ -9,7 +9,7 @@ class Permiso extends Model
     protected $table    = 'permiso';
     public    $timestamps = false;
 
-    protected $fillable = ['nombre', 'etiqueta', 'modulo'];
+    protected $fillable = ['nombre', 'etiqueta', 'caso_uso', 'paquete'];
 
     public function roles()
     {

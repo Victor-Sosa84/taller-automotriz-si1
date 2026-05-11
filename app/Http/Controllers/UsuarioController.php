@@ -9,6 +9,7 @@ use App\Models\Usuario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
 
@@ -21,11 +22,11 @@ class UsuarioController extends Controller
         if ($search = $request->get('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('nombre_usuario', 'like', "%{$search}%")
-                  ->orWhere('correo', 'like', "%{$search}%")
-                  ->orWhereHas('persona', fn($p) =>
-                      $p->where('nombre', 'like', "%{$search}%")
+                    ->orWhere('correo', 'like', "%{$search}%")
+                    ->orWhereHas('persona', fn($p) =>
+                        $p->where('nombre', 'like', "%{$search}%")
                         ->orWhere('ci', 'like', "%{$search}%")
-                  );
+                    );
             });
         }
 
@@ -159,14 +160,14 @@ class UsuarioController extends Controller
         });
 
         return redirect()->route('usuarios.index')
-                         ->with('success', "Usuario actualizado correctamente.");
+                            ->with('success', "Usuario actualizado correctamente.");
     }
 
     public function destroy(int $id)
     {
         $usuario = Usuario::with('persona')->findOrFail($id);
 
-        if ($usuario->id_usuario === auth()->user()->id_usuario) {
+        if ($usuario->id_usuario === Auth::user()->id_usuario) {
             return back()->with('error', 'No puedes eliminar tu propia cuenta.');
         }
 
@@ -187,6 +188,6 @@ class UsuarioController extends Controller
         });
 
         return redirect()->route('usuarios.index')
-                         ->with('success', "Usuario «{$nombre}» eliminado.");
+                        ->with('success', "Usuario «{$nombre}» eliminado.");
     }
 }
