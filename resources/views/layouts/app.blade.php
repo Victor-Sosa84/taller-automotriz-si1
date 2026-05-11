@@ -204,53 +204,35 @@
             <span class="nav-icon">⊞</span> Dashboard
         </a>
 
-        @if(auth()->user()->puede('HIST_VIEW'))
         <div class="nav-section">Consultas</div>
         <a href="{{ route('historial.index') }}" class="nav-item {{ request()->routeIs('historial*') ? 'active' : '' }}" onclick="cerrarSidebar()">
             <span class="nav-icon">📋</span> Historial
         </a>
-        @endif
 
-        @if(auth()->user()->esAdmin())
         <div class="nav-section">Administración</div>
-        @if(auth()->user()->puede('USU_VIEW'))
         <a href="{{ route('usuarios.index') }}" class="nav-item {{ request()->routeIs('usuarios*') || request()->routeIs('cargos*') ? 'active' : '' }}" onclick="cerrarSidebar()">
             <span class="nav-icon">👤</span> Usuarios
         </a>
-        @endif
-        @if(auth()->user()->puede('BIT_VIEW'))
         <a href="{{ route('bitacora.index') }}" class="nav-item {{ request()->routeIs('bitacora*') ? 'active' : '' }}" onclick="cerrarSidebar()">
             <span class="nav-icon">🗒</span> Bitácora
         </a>
-        @endif
         <a href="{{ route('permisos.index') }}" class="nav-item {{ request()->routeIs('permisos*') ? 'active' : '' }}" onclick="cerrarSidebar()">
             <span class="nav-icon">🔐</span> Permisos
         </a>
-        @endif
 
-        @if(auth()->user()->puede('CLI_VIEW') || auth()->user()->puede('VEH_VIEW'))
         <div class="nav-section">Atención al cliente</div>
-        @if(auth()->user()->puede('CLI_VIEW'))
         <a href="{{ route('clientes.index') }}" class="nav-item {{ request()->routeIs('clientes*') ? 'active' : '' }}" onclick="cerrarSidebar()">
             <span class="nav-icon">🧑</span> Clientes
         </a>
-        @endif
-        @if(auth()->user()->puede('VEH_VIEW'))
         <a href="{{ route('autos.index') }}" class="nav-item {{ request()->routeIs('autos*') ? 'active' : '' }}" onclick="cerrarSidebar()">
             <span class="nav-icon">🚗</span> Vehículos
         </a>
-        @endif
-        @endif
 
-        @if(auth()->user()->esMecanico())
         <div class="nav-section">Taller</div>
         <a href="#" class="nav-item" onclick="cerrarSidebar()"><span class="nav-icon">🔧</span> Órdenes de Trabajo</a>
-        @endif
 
-        @if(auth()->user()->esRecepcionista() && auth()->user()->puede('PROF_VIEW'))
         <div class="nav-section">Gestión</div>
         <a href="#" class="nav-item" onclick="cerrarSidebar()"><span class="nav-icon">📄</span> Proformas</a>
-        @endif
 
     </nav>
 
