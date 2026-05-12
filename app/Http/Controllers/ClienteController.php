@@ -33,9 +33,9 @@ class ClienteController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'ci'        => ['required', 'string', 'max:20'],
+            'ci'        => ['required', 'string', 'max:8'],
             'nombre'    => ['required', 'string', 'max:100'],
-            'telefono'  => ['nullable', 'string', 'max:20'],
+            'telefono'  => ['nullable', 'string', 'digits:7'],
             'direccion' => ['nullable', 'string', 'max:255'],
         ]);
 
@@ -110,7 +110,7 @@ class ClienteController extends Controller
 
         $request->validate([
             'nombre'    => ['required', 'string', 'max:100'],
-            'telefono'  => ['nullable', 'string', 'max:20'],
+            'telefono'  => ['nullable', 'string', 'digits:7'],
             'direccion' => ['nullable', 'string', 'max:255'],
         ]);
 

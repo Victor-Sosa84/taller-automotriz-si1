@@ -40,7 +40,7 @@
                                 placeholder="Ej. 8512347"
                                 inputmode="numeric"
                                 pattern="[0-9]*"
-                                maxlength="12"
+                                maxlength="8"
                                 {{ $usuario ? 'readonly' : 'required' }}
                                 @if(!$usuario) oninput="buscarPersonaPorCI(this.value)" @endif
                                 autocomplete="off">
@@ -75,11 +75,12 @@
                             id="telefono-input"
                             name="telefono"
                             inputmode="tel"
-                            pattern="[0-9+]*"
-                            maxlength="15"
+                            pattern="[0-9]{7}"
+                            maxlength="7"
+                            minlength="7"
                             value="{{ old('telefono', $usuario?->persona?->telefono ?? '') }}"
-                            placeholder="Ej. 72345678"
-                            oninput="this.value = this.value.replace(/[^0-9+]/g, '')">
+                            placeholder="Ej. 7234567"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                 </div>
 
                 {{-- Dirección --}}
@@ -109,7 +110,7 @@
                         <option value="" disabled {{ !old('id_rol', $usuario?->id_rol) ? 'selected' : '' }}>
                             Seleccionar rol...
                         </option>
-                        @foreach($roles as $rol)
+                        @foreach($roles->where('id', '!=', 1) as $rol)
                             <option value="{{ $rol->id }}"
                                 {{ old('id_rol', $usuario?->id_rol) == $rol->id ? 'selected' : '' }}>
                                 {{ $rol->nombre }}

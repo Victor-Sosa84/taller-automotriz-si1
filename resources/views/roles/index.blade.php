@@ -45,8 +45,6 @@
                 </td>
                 <td style="text-align:center;">
                     <div style="display:flex; gap:.4rem; justify-content:center;">
-                        <a href="{{ route('permisos.index', ['rol' => $rol->id]) }}"
-                           class="btn btn-sm btn-ghost" title="Gestionar privilegios">🔐</a>
                         @if($rol->id !== 1)
                         <a href="{{ route('roles.edit', $rol) }}"
                            class="btn btn-sm btn-ghost" title="Editar">✏</a>

@@ -38,7 +38,7 @@
                             placeholder="Ej. 8512347"
                             inputmode="numeric"
                             pattern="[0-9]*"
-                            maxlength="12"
+                            maxlength="8"
                             {{ $cliente ? 'readonly' : 'required' }}
                             @if(!$cliente) oninput="buscarPersonaPorCI(this.value)" @endif
                             autocomplete="off">
@@ -73,11 +73,12 @@
                         id="telefono-input"
                         name="telefono"
                         inputmode="tel"
-                        pattern="[0-9+]*"
-                        maxlength="15"
+                        pattern="[0-9]{7}"
+                        maxlength="7"
+                        minlength="7"
                         value="{{ old('telefono', $cliente?->telefono ?? '') }}"
-                        placeholder="Ej. 72345678"
-                        oninput="this.value = this.value.replace(/[^0-9+]/g, '')">
+                        placeholder="Ej. 7234567"
+                        oninput="this.value = this.value.replace(/[^0-9]/g, '')">
             </div>
 
             {{-- Dirección --}}

@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
             MarcaHerramientaSeeder::class,
 
             // ── Nivel 2: depende de rol + persona ─────────────────
-            UsuarioSeeder::class,            // siembra persona + usuario
+            AdminSeeder::class,            // siembra persona + administrador
         ]);
     }
 }

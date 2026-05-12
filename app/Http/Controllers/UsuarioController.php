@@ -49,9 +49,9 @@ class UsuarioController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'ci'         => ['required', 'string', 'max:20'], // Sin unique para permitir la búsqueda
+            'ci'         => ['required', 'string', 'max:8'], // Sin unique para permitir la búsqueda
             'nombre'     => ['required', 'string', 'max:100'],
-            'telefono'   => ['nullable', 'string', 'max:20'],
+            'telefono'   => ['nullable', 'string', 'digits:7'],
             'direccion'  => ['nullable', 'string', 'max:255'],
             'id_rol'     => ['required', 'exists:rol,id'],
             'correo'     => ['nullable', 'email', 'max:100', 'unique:usuario,correo'],
@@ -126,41 +126,51 @@ class UsuarioController extends Controller
     public function update(Request $request, int $id)
     {
         $usuario = Usuario::with('persona')->findOrFail($id);
-
+ 
+        $esSiMismo   = (int)$id === (int)auth()->user()->id_usuario;
+        $esAdminBase = (int)$usuario->id_usuario === 1;
+        $rolProtegido = $esSiMismo || $esAdminBase;
+ 
         $request->validate([
             'nombre'    => ['required', 'string', 'max:100'],
-            'telefono'  => ['nullable', 'string', 'max:20'],
+            'telefono'  => ['nullable', 'string', 'digits:7'],
             'direccion' => ['nullable', 'string', 'max:255'],
             'id_rol'    => ['required', 'exists:rol,id'],
             'correo'    => ['nullable', 'email', 'max:100',
                 Rule::unique('usuario', 'correo')->ignore($id, 'id_usuario'),
             ],
-            'clave'     => ['nullable', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
+            'clave' => ['nullable', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
         ]);
-
-        DB::transaction(function () use ($request, $usuario) {
+ 
+        // Bloquear cambio de rol si aplica
+        if ($rolProtegido && (int)$request->id_rol !== (int)$usuario->id_rol) {
+            return back()->withInput()
+                         ->with('error', $esSiMismo
+                             ? 'No puedes cambiar tu propio rol.'
+                             : 'El rol del Admin Principal no puede modificarse.');
+        }
+ 
+        DB::transaction(function () use ($request, $usuario, $rolProtegido) {
             $usuario->persona->update([
                 'nombre'    => $request->nombre,
                 'telefono'  => $request->telefono,
                 'direccion' => $request->direccion,
             ]);
-
-            $datos = ['id_rol' => $request->id_rol, 'correo' => $request->correo];
-
+ 
+            $datos = ['correo' => $request->correo];
+            if (!$rolProtegido) {
+                $datos['id_rol'] = $request->id_rol;
+            }
             if ($request->filled('clave')) {
                 $datos['clave'] = Hash::make($request->clave);
             }
-
             $usuario->update($datos);
-
-            Bitacora::registrar(
-                'Edición de Usuario',
-                "usuario: {$usuario->nombre_usuario}"
-            );
+ 
+            Bitacora::registrar('Edición de Usuario', "usuario: {$usuario->nombre_usuario}");
         });
-
+ 
         return redirect()->route('usuarios.index')
-                            ->with('success', "Usuario actualizado correctamente.");
+                         ->with('success', 'Usuario actualizado correctamente.');
     }
 
     public function destroy(int $id)
