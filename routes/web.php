@@ -5,7 +5,10 @@ use App\Http\Controllers\CargoController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\AutoController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DiagnosticoController;
+use App\Http\Controllers\DetalleDiagnosticoController;
 use App\Http\Controllers\HistorialController;
+use App\Http\Controllers\OrdenTrabajoController;
 use App\Http\Controllers\PermisoController;
 use App\Http\Controllers\RolController;
 use App\Http\Controllers\UsuarioController;
@@ -88,6 +91,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/autos/{placa}/edit',  [AutoController::class, 'edit'])->name('autos.edit')->middleware('permiso:CU02_MOD');
     Route::put('/autos/{placa}',       [AutoController::class, 'update'])->name('autos.update')->middleware('permiso:CU02_MOD');
     Route::delete('/autos/{placa}',    [AutoController::class, 'destroy'])->name('autos.destroy')->middleware('permiso:CU02_ELI');
+
+    // ── Recepción Técnica ──────────────────────────────────────
+    Route::get('/orden-trabajo/create', [OrdenTrabajoController::class, 'create'])->name('orden-trabajo.create')->middleware('permiso:CU04_ADD');
+    Route::post('/orden-trabajo/store', [OrdenTrabajoController::class, 'store'])->name('orden-trabajo.store')->middleware('permiso:CU04_ADD');
+
+    Route::get('/diagnostico/create',   [DiagnosticoController::class, 'create'])->name('diagnostico.create')->middleware('permiso:CU05_ADD');
+    Route::post('/diagnostico/store',   [DiagnosticoController::class, 'store'])->name('diagnostico.store')->middleware('permiso:CU05_ADD');
+    Route::post('/detalle-diagnostico/store', [DetalleDiagnosticoController::class, 'store'])->name('detalle-diagnostico.store')->middleware('permiso:CU05_ADD');
 
     // ── Historial ─────────────────────────────────────────────
     Route::get('/historial',           [HistorialController::class, 'index'])->name('historial.index')->middleware('permiso:CU03_BUS');

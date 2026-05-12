@@ -5,6 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class DetalleDiagnostico extends Model
 {
+    public $incrementing = false;
     protected $table    = 'detalle_diagnostico';
     public    $timestamps = false;
     protected $fillable = ['id_diagnostico', 'id_detalle_diagnostico', 'descripcion'];

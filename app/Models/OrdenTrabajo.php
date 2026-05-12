@@ -12,12 +12,18 @@ class OrdenTrabajo extends Model
     protected $fillable = [
         'nro_proforma', 'fecha_inicio', 'fecha_fin',
         'estado', 'kilometraje', 'observacion_entrada', 'observacion_salida',
+        'placa_auto',
     ];
 
     protected $casts = [
         'fecha_inicio' => 'datetime',
         'fecha_fin'    => 'datetime',
     ];
+
+    public function auto()
+    {
+        return $this->belongsTo(Auto::class, 'placa_auto', 'placa');
+    }
 
     public function proforma()
     {

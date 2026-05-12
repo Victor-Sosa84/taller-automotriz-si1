@@ -24,7 +24,12 @@
             @if($auto->color) · {{ $auto->color }} @endif
         </div>
     </div>
-    <a href="{{ route('autos.edit', $auto->placa) }}" class="btn btn-ghost">✏ Editar ficha</a>
+    <div style="display:flex; gap:.75rem; flex-wrap:wrap;">
+        <a href="{{ route('autos.edit', $auto->placa) }}" class="btn btn-ghost">✏ Editar ficha</a>
+        @if(auth()->user()->puede('CU04_ADD'))
+            <a href="{{ route('orden-trabajo.create', ['placa' => $auto->placa]) }}" class="btn btn-primary">🛠 Registrar ingreso</a>
+        @endif
+    </div>
 </div>
 
 {{-- Stats rápidos --}}
