@@ -38,6 +38,7 @@
                 <th>Modelo</th>
                 <th>Año</th>
                 <th>Color</th>
+                <th>Tipo</th>
                 <th style="text-align:center;">Acciones</th>
             </tr>
         </thead>
@@ -51,6 +52,7 @@
                 <td>{{ $auto->modelo ?? '—' }}</td>
                 <td class="td-muted">{{ $auto->anio ?? '—' }}</td>
                 <td class="td-muted">{{ $auto->color ?? '—' }}</td>
+                <td class="td-muted">{{ $auto->tipo ?? '—' }}</td>
                 <td style="text-align:center;">
                     <div style="display:flex; gap:.4rem; justify-content:center;">
                         <a href="{{ route('autos.show', $auto->placa) }}"

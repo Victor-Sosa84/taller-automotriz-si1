@@ -17,7 +17,8 @@ class AutoController extends Controller
                 $q->where('placa',  'like', "%{$search}%")
                   ->orWhere('marca',  'like', "%{$search}%")
                   ->orWhere('modelo', 'like', "%{$search}%")
-                  ->orWhere('color',  'like', "%{$search}%");
+                  ->orWhere('color',  'like', "%{$search}%")
+                  ->orWhere('tipo',   'like', "%{$search}%");
             });
         }
 
@@ -39,9 +40,10 @@ class AutoController extends Controller
             'modelo' => ['nullable', 'string', 'max:50'],
             'anio'   => ['nullable', 'integer', 'min:1900', 'max:' . (date('Y') + 1)],
             'color'  => ['nullable', 'string', 'max:30'],
+            'tipo'   => ['nullable', 'string', 'max:50'],
         ]);
 
-        Auto::create($request->only(['placa', 'marca', 'modelo', 'anio', 'color']));
+        Auto::create($request->only(['placa', 'marca', 'modelo', 'anio', 'color', 'tipo']));
 
         Bitacora::registrar('Registro de Vehículo', "Placa: {$request->placa}");
 
@@ -51,7 +53,12 @@ class AutoController extends Controller
 
     public function show(string $placa)
     {
-        $auto = Auto::with(['diagnosticos.persona'])->findOrFail($placa);
+        $auto = Auto::with([
+            'diagnosticos.persona',
+            'diagnosticos.detalles',
+            'diagnosticos.proforma.ordenTrabajo',
+        ])->findOrFail($placa);
+
         return view('autos.show', compact('auto'));
     }
 
@@ -70,9 +77,10 @@ class AutoController extends Controller
             'modelo' => ['nullable', 'string', 'max:50'],
             'anio'   => ['nullable', 'integer', 'min:1900', 'max:' . (date('Y') + 1)],
             'color'  => ['nullable', 'string', 'max:30'],
+            'tipo'   => ['nullable', 'string', 'max:50'],
         ]);
 
-        $auto->update($request->only(['marca', 'modelo', 'anio', 'color']));
+        $auto->update($request->only(['marca', 'modelo', 'anio', 'color', 'tipo']));
 
         Bitacora::registrar('Edición de Vehículo', "Placa: {$placa}");
 

@@ -13,6 +13,7 @@ class Diagnostico extends Model
         'fecha',
         'ci_personal',
         'placa_auto',
+        'descripcion',
     ];
 
     protected $casts = [

@@ -98,7 +98,6 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/diagnostico/create',   [DiagnosticoController::class, 'create'])->name('diagnostico.create')->middleware('permiso:CU05_ADD');
     Route::post('/diagnostico/store',   [DiagnosticoController::class, 'store'])->name('diagnostico.store')->middleware('permiso:CU05_ADD');
-    Route::post('/detalle-diagnostico/store', [DetalleDiagnosticoController::class, 'store'])->name('detalle-diagnostico.store')->middleware('permiso:CU05_ADD');
 
     // ── Historial ─────────────────────────────────────────────
     Route::get('/historial',           [HistorialController::class, 'index'])->name('historial.index')->middleware('permiso:CU03_BUS');

@@ -18,6 +18,7 @@ class Auto extends Model
         'modelo',
         'anio',
         'color',
+        'tipo',
     ];
 
     // Un auto puede tener muchos diagnósticos

@@ -87,9 +87,18 @@
             </div>
             @foreach($diag->detalles as $det)
             <div style="background:var(--surface2); border-radius:4px; padding:.5rem .75rem; font-size:.875rem; margin-bottom:.3rem;">
-                {{ $det->descripcion }}
+                {{ $det->falla }}
             </div>
             @endforeach
+
+            @if($diag->descripcion)
+            <div style="font-size:.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; margin-top:.75rem; margin-bottom:.4rem;">
+                Dictamen
+            </div>
+            <div style="background:var(--surface2); border-radius:4px; padding:.5rem .75rem; font-size:.875rem;">
+                {{ $diag->descripcion }}
+            </div>
+            @endif
         </div>
         @endif
 

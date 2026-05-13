@@ -89,6 +89,15 @@
                         placeholder="Ej. Blanco perla">
             </div>
 
+            {{-- Tipo --}}
+            <div class="field-group {{ $errors->has('tipo') ? 'has-error' : '' }}">
+                <label>Tipo</label>
+                <input type="text" name="tipo"
+                        value="{{ old('tipo', $auto?->tipo ?? '') }}"
+                        placeholder="Ej. Sedan, SUV, Camioneta">
+                @error('tipo') <span class="field-error">{{ $message }}</span> @enderror
+            </div>
+
         </div>
 
         <div class="form-actions">

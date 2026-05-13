@@ -159,6 +159,16 @@
         @endif
         @endif
 
+        @if(auth()->user()->puede('CU04_ADD'))
+        <a href="{{ route('orden-trabajo.create') }}"
+        class="nav-item {{ request()->routeIs('orden-trabajo.*', 'diagnostico.*') ? 'active' : '' }}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Ingresos
+        </a>
+        @endif
+
     </nav>
     <div class="sidebar-footer">
         <form method="POST" action="{{ route('logout') }}">

@@ -62,6 +62,11 @@
         </div>
 
         <div class="field-group" style="grid-column:1 / -1;">
+            <label for="descripcion"> Descripción <span class="req">*</span></label>
+            <textarea id="descripcion" name="descripcion" rows="4" placeholder="Escriba la descripción del diagnóstico">{{ old('descripcion') }}</textarea>
+        </div>
+
+        <div class="field-group" style="grid-column:1 / -1;">
             <label for="resultado_general">Resultado General <span class="req">*</span></label>
             <textarea id="resultado_general" name="resultado_general" rows="4" placeholder="Escriba el dictamen final del mecánico">{{ old('resultado_general') }}</textarea>
         </div>

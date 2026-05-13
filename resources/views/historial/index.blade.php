@@ -39,6 +39,7 @@
                         <th>Modelo</th>
                         <th>Año</th>
                         <th>Color</th>
+                        <th>Tipo</th>
                         <th style="text-align:center;">Ver historial</th>
                     </tr>
                 </thead>
@@ -52,6 +53,7 @@
                         <td>{{ $auto->modelo ?? '—' }}</td>
                         <td class="td-muted">{{ $auto->anio ?? '—' }}</td>
                         <td class="td-muted">{{ $auto->color ?? '—' }}</td>
+                        <td class="td-muted">{{ $auto->tipo ?? '—' }}</td>
                         <td style="text-align:center;">
                             <a href="{{ route('historial.show', $auto->placa) }}"
                                class="btn btn-sm btn-primary">Ver historial →</a>

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Auto;
@@ -9,48 +8,42 @@ use Illuminate\Http\Request;
 
 class OrdenTrabajoController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('permiso:CU04_ADD');
-    }
-
     public function create(Request $request)
     {
         $placa = $request->query('placa');
-        $auto = $placa ? Auto::find($placa) : null;
-
+        $auto  = $placa ? Auto::find($placa) : null;
         return view('orden_trabajo.create', compact('auto', 'placa'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'placa' => ['required', 'string', 'max:15', 'exists:auto,placa'],
-            'kilometraje' => ['required', 'integer', 'min:0'],
-            'combustible' => ['required', 'in:Vacío,1/4,1/2,3/4,Lleno'],
-            'inventario' => ['array'],
-            'inventario.*' => ['in:Llanta Auxilio,Gato,Herramientas,Radio'],
-            'observaciones_fisicas' => ['nullable', 'string', 'max:1000'],
-            'motivo_ingreso' => ['required', 'string', 'max:500'],
+            'placa'                => ['required', 'string', 'max:15', 'exists:auto,placa'],
+            'kilometraje'          => ['required', 'integer', 'min:0'],
+            'combustible'          => ['required', 'in:Vacío,1/4,1/2,3/4,Lleno'],
+            'inventario'           => ['array'],
+            'inventario.*'         => ['in:Llanta Auxilio,Gato,Herramientas,Radio'],
+            'observaciones_fisicas'=> ['nullable', 'string', 'max:1000'],
+            'motivo_ingreso'       => ['required', 'string', 'max:500'],
         ]);
 
-        $inventario = $request->input('inventario', []);
-        $observacionEntrada = "Combustible: {$request->combustible}. ";
+        $inventario          = $request->input('inventario', []);
+        $observacionEntrada  = "Combustible: {$request->combustible}. ";
         $observacionEntrada .= 'Inventario: ' . ($inventario ? implode(', ', $inventario) : 'Ninguno') . '. ';
         $observacionEntrada .= 'Daños físicos: ' . ($request->observaciones_fisicas ?: 'Ninguno') . '. ';
         $observacionEntrada .= 'Motivo: ' . $request->motivo_ingreso . '.';
 
         $orden = OrdenTrabajo::create([
-            'nro_proforma' => null,
-            'fecha_inicio' => now(),
-            'estado' => 'Pendiente de Diagnóstico',
-            'kilometraje' => $request->kilometraje,
+            'nro_proforma'        => null,
+            'fecha_inicio'        => now(),
+            'estado'              => 'Pendiente de Diagnóstico',
+            'kilometraje'         => $request->kilometraje,
             'observacion_entrada' => $observacionEntrada,
-            'observacion_salida' => null,
-            'placa_auto' => $request->placa,
+            'observacion_salida'  => null,
+            'placa_auto'          => $request->placa,
         ]);
 
-        Bitacora::registrar('Registro de Unidad', "Orden de trabajo #{$orden->nro} - Placa: {$request->placa}");
+        Bitacora::registrar('Registro de Unidad', "Orden #{$orden->nro} - Placa: {$request->placa}");
 
         return redirect()->route('diagnostico.create', ['orden_id' => $orden->nro])
                          ->with('success', 'Unidad registrada. Continúe con el diagnóstico.');

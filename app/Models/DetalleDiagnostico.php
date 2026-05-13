@@ -5,10 +5,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class DetalleDiagnostico extends Model
 {
-    public $incrementing = false;
-    protected $table    = 'detalle_diagnostico';
+    protected $table      = 'detalle_diagnostico';
     public    $timestamps = false;
-    protected $fillable = ['id_diagnostico', 'id_detalle_diagnostico', 'descripcion'];
+    public    $incrementing = false;
+    protected $primaryKey = 'id_diagnostico'; // cualquiera de las dos, solo para que no busque 'id'
+    protected $fillable   = ['id_diagnostico', 'id_detalle_diagnostico', 'falla'];
 
     public function diagnostico()
     {

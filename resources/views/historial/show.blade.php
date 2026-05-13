@@ -80,16 +80,31 @@
 
         {{-- Detalles del diagnóstico --}}
         @if($diag->detalles->isNotEmpty())
+        @php $detalles = $diag->detalles; @endphp
         <div style="margin-bottom:1rem;">
             <div style="font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:.5rem;">
                 Observaciones del diagnóstico
             </div>
             @foreach($diag->detalles as $det)
-            <div style="display:flex; align-items:flex-start; gap:.5rem; padding:.4rem 0; border-bottom:1px solid var(--border); font-size:.875rem;">
-                <span style="color:var(--accent); flex-shrink:0;">›</span>
-                {{ $det->descripcion }}
-            </div>
+                @if($det->falla)
+                <div style="display:flex; align-items:flex-start; gap:.5rem; padding:.4rem 0;
+                            border-bottom:1px solid var(--border); font-size:.875rem;">
+                    <span style="color:var(--accent); flex-shrink:0;">›</span>
+                    {{ $det->falla }}
+                </div>
+                @endif
             @endforeach
+            @if($diag->descripcion)
+            <div style="font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+            color:var(--muted); margin-bottom:.5rem; margin-top:.75rem;">
+                Dictamen
+            </div>
+            <div style="display:flex; align-items:flex-start; gap:.5rem; padding:.4rem 0;
+                        border-bottom:1px solid var(--border); font-size:.875rem;">
+                <span style="color:var(--accent); flex-shrink:0;">›</span>
+                {{ $diag->descripcion }}
+            </div>
+            @endif 
         </div>
         @endif
 
