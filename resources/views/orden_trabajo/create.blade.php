@@ -47,10 +47,12 @@
 
             <div class="field-group">
                 <label>Inventario</label>
-                <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;">
+                <div style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:.5rem .75rem; margin-top:.25rem;">
                     @foreach(['Llanta Auxilio','Gato','Herramientas','Radio'] as $item)
-                        <label style="display:flex;align-items:center;gap:.5rem;font-size:.9rem;color:var(--text);">
-                            <input type="checkbox" name="inventario[]" value="{{ $item }}" {{ in_array($item, old('inventario', [])) ? 'checked' : '' }}>
+                        <label style="display:flex; align-items:center; gap:.6rem; font-size:.9rem; color:var(--text); cursor:pointer; padding:.4rem .6rem; border-radius:.4rem; background:var(--surface-2, rgba(255,255,255,.05));">
+                            <input type="checkbox" name="inventario[]" value="{{ $item }}"
+                                {{ in_array($item, old('inventario', [])) ? 'checked' : '' }}
+                                style="width:1rem; height:1rem; accent-color:var(--accent); cursor:pointer;">
                             {{ $item }}
                         </label>
                     @endforeach
@@ -58,13 +60,10 @@
             </div>
 
             <div class="field-group" style="grid-column:1 / -1;">
-                <label for="observaciones_fisicas">Observaciones Físicas</label>
-                <textarea id="observaciones_fisicas" name="observaciones_fisicas" rows="4" placeholder="Describe rayaduras, golpes o detalles físicos...">{{ old('observaciones_fisicas') }}</textarea>
-            </div>
-
-            <div class="field-group" style="grid-column:1 / -1;">
-                <label for="motivo_ingreso">Motivo de Ingreso <span class="req">*</span></label>
-                <textarea id="motivo_ingreso" name="motivo_ingreso" rows="3" placeholder="Breve descripción del motivo de ingreso...">{{ old('motivo_ingreso') }}</textarea>
+                <label for="observaciones_adicionales">Observaciones Adicionales</label>
+                <textarea id="observaciones_adicionales" name="observaciones_adicionales" rows="4"
+                    style="width:100%; box-sizing:border-box; resize:vertical;"
+                    placeholder="Rayaduras, golpes, detalles físicos u otras observaciones...">{{ old('observaciones_adicionales') }}</textarea>
             </div>
         </div>
 

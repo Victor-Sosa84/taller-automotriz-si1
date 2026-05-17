@@ -20,10 +20,9 @@ class DiagnosticoController extends Controller
     {
         $request->validate([
             'orden_id'         => ['required', 'integer', 'exists:orden_trabajo,nro'],
-            'fallas'           => ['required', 'array', 'min:1'],
-            'fallas.*'         => ['required', 'string', 'max:1000'],
-            'resultado_general'=> ['required', 'string', 'max:1200'],
-            'descripcion'      => ['nullable', 'string', 'max:255'],
+            'fallas'      => ['required', 'array', 'min:1'],
+            'fallas.*'    => ['required', 'string', 'max:1000'],
+            'descripcion' => ['required', 'string', 'max:1200'],
         ]);
 
         $orden      = OrdenTrabajo::findOrFail($request->orden_id);
@@ -37,7 +36,7 @@ class DiagnosticoController extends Controller
             'fecha'       => now(),
             'ci_personal' => $ciPersonal,
             'placa_auto'  => $orden->placa_auto,
-            'descripcion' => $request->descripcion,
+            'descripcion' => $request->descripcion,  // aquí va el dictamen completo
         ]);
 
         $detalles = [];
@@ -50,14 +49,11 @@ class DiagnosticoController extends Controller
         }
         DetalleDiagnostico::insert($detalles);
 
-        $orden->update([
-            'estado'              => 'Diagnóstico Finalizado',
-            'observacion_salida'  => $request->resultado_general,
-        ]);
+        $orden->update(['estado' => 'Diagnóstico Finalizado']);
 
         Bitacora::registrar('Diagnóstico Técnico', "Diagnóstico #{$diagnostico->id} para orden #{$orden->nro}");
 
         return redirect()->route('autos.show', $orden->placa_auto)
-                         ->with('success', 'Diagnóstico finalizado correctamente.');
+                        ->with('success', 'Diagnóstico finalizado correctamente.');
     }
 }
