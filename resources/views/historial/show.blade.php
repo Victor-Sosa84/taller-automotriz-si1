@@ -67,12 +67,11 @@
             </span>
             <span class="td-muted">{{ $diag->fecha->format('d/m/Y H:i') }}</span>
         </div>
-        <div style="font-size:.82rem; color:var(--muted);">
-            Cliente:
-            <a href="{{ route('clientes.show', $diag->ci_personal) }}"
-               style="color:var(--text); font-weight:600; text-decoration:none;">
-                {{ $diag->persona?->nombre ?? $diag->ci_personal }}
-            </a>
+        <div style="display:flex; align-items:center; gap:1rem;">
+            <div style="font-size:.82rem; color:var(--muted);">
+                Registrado por: <strong style="color:var(--text);">{{ $diag->persona?->nombre ?? '—' }}</strong>
+            </div>
+            <a href="{{ route('diagnostico.show', $diag->id) }}" class="btn btn-ghost btn-sm">Ver →</a>
         </div>
     </div>
 
@@ -122,8 +121,20 @@
                         <span style="color:var(--accent); font-weight:600;">
                             Bs. {{ number_format($proforma->total_aprox, 2) }}
                         </span>
+                        @php
+                            $colores = [
+                                'Borrador'  => 'background:rgba(107,117,145,.2); color:var(--muted);',
+                                'Emitida'   => 'background:rgba(52,152,219,.15); color:#5dade2;',
+                                'Aprobada'  => 'background:rgba(46,204,113,.15); color:var(--success);',
+                                'Observada' => 'background:rgba(245,166,35,.15); color:var(--accent);',
+                                'Anulada'   => 'background:rgba(231,76,60,.1); color:var(--danger);',
+                            ];
+                            $estiloP = $colores[$proforma->estado] ?? '';
+                        @endphp
                         @if($proforma->estado)
-                            <span class="badge badge-recep">{{ $proforma->estado }}</span>
+                            <span style="font-size:.7rem; font-weight:700; padding:.2rem .6rem; border-radius:999px; {{ $estiloP }}">
+                                {{ $proforma->estado }}
+                            </span>
                         @endif
                     </div>
                 </div>
