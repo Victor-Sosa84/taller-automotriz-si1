@@ -35,7 +35,7 @@ class DiagnosticoController extends Controller
         $diagnostico = Diagnostico::create([
             'fecha'       => now(),
             'ci_personal' => $ciPersonal,
-            'placa_auto'  => $orden->placa_auto,
+            'placa_auto' => strtoupper($orden->placa_auto),
             'descripcion' => $request->descripcion,  // aquí va el dictamen completo
         ]);
 
@@ -53,7 +53,13 @@ class DiagnosticoController extends Controller
 
         Bitacora::registrar('Diagnóstico Técnico', "Diagnóstico #{$diagnostico->id} para orden #{$orden->nro}");
 
-        return redirect()->route('autos.show', $orden->placa_auto)
-                        ->with('success', 'Diagnóstico finalizado correctamente.');
+        return redirect()->route('diagnostico.show', $diagnostico->id)
+                ->with('success', 'Diagnóstico finalizado correctamente.');
+    }
+
+    public function show(Diagnostico $diagnostico)
+    {
+        $diagnostico->load('auto', 'persona', 'detalles', 'proforma.repuestos.repuesto', 'proforma.servicios.manoObra');
+        return view('diagnostico.show', compact('diagnostico'));
     }
 }

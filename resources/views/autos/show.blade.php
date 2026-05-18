@@ -73,9 +73,11 @@
                 </span>
                 <span class="td-muted">{{ \Carbon\Carbon::parse($diag->fecha)->format('d/m/Y H:i') }}</span>
             </div>
-            <div style="font-size:.8rem; color:var(--muted);">
-                Cliente: <strong style="color:var(--text);">{{ $diag->persona?->nombre ?? '—' }}</strong>
-                · CI: {{ $diag->ci_personal }}
+            <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+                <div style="font-size:.8rem; color:var(--muted);">
+                    Registrado por: <strong style="color:var(--text);">{{ $diag->persona?->nombre ?? '—' }}</strong>
+                </div>
+                <a href="{{ route('diagnostico.show', $diag->id) }}" class="btn btn-ghost btn-sm">Ver →</a>
             </div>
         </div>
 
@@ -102,45 +104,54 @@
         </div>
         @endif
 
-        {{-- Órdenes de trabajo asociadas --}}
-        @if($diag->proforma && $diag->proforma->ordenTrabajo)
-            @php $orden = $diag->proforma->ordenTrabajo; @endphp
-            <div style="background:rgba(245,166,35,.05); border:1px solid rgba(245,166,35,.15); border-radius:6px; padding:.9rem 1rem;">
+        {{-- Proforma asociada y órdenes de trabajo --}}
+        @if($diag->proforma)
+            @php $p = $diag->proforma; @endphp
+            @php
+                $colores = [
+                    'Borrador'  => 'background:rgba(107,117,145,.2); color:var(--muted);',
+                    'Emitida'   => 'background:rgba(52,152,219,.15); color:#5dade2;',
+                    'Aprobada'  => 'background:rgba(46,204,113,.15); color:var(--success);',
+                    'Observada' => 'background:rgba(245,166,35,.15); color:var(--accent);',
+                    'Anulada'   => 'background:rgba(231,76,60,.1); color:var(--danger);',
+                ];
+                $estilo = $colores[$p->estado] ?? '';
+            @endphp
+            <div style="background:rgba(245,166,35,.05); border:1px solid rgba(245,166,35,.15); border-radius:6px; padding:.9rem 1rem; margin-top:.5rem;">
                 <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.5rem;">
                     <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:.95rem;">
-                        🔧 Orden de Trabajo #{{ $orden->nro }}
+                        📄 Proforma #{{ $p->nro }}
                     </div>
-                    <span class="badge {{ match($orden->estado) {
-                        'Completada' => 'badge-admin',
-                        'En proceso' => 'badge-mec',
-                        default      => 'badge-recep'
-                    } }}">
-                        {{ $orden->estado ?? 'Sin estado' }}
-                    </span>
+                    <div style="display:flex; align-items:center; gap:.75rem;">
+                        <span style="font-size:.7rem; font-weight:700; padding:.2rem .6rem; border-radius:999px; {{ $estilo }}">
+                            {{ $p->estado }}
+                        </span>
+                        <a href="{{ route('proforma.show', $p->nro) }}" class="btn btn-ghost btn-sm">Ver →</a>
+                    </div>
                 </div>
-                <div style="display:flex; gap:1.5rem; margin-top:.6rem; flex-wrap:wrap; font-size:.82rem; color:var(--muted);">
-                    <span>Inicio: {{ \Carbon\Carbon::parse($orden->fecha_inicio)->format('d/m/Y') }}</span>
-                    @if($orden->fecha_fin)
-                        <span>Fin: {{ \Carbon\Carbon::parse($orden->fecha_fin)->format('d/m/Y') }}</span>
-                    @endif
-                    @if($orden->kilometraje)
-                        <span>Km: {{ number_format($orden->kilometraje) }}</span>
-                    @endif
+                <div style="font-size:.82rem; color:var(--muted); margin-top:.5rem;">
+                    Total: <strong style="color:var(--accent);">Bs {{ number_format($p->total_aprox, 2) }}</strong>
+                    @if($p->plazo) · Plazo: {{ \Carbon\Carbon::parse($p->plazo)->format('d/m/Y') }} @endif
                 </div>
-                @if($orden->observacion_entrada)
-                <div style="margin-top:.6rem; font-size:.82rem; color:var(--muted);">
-                    <span style="color:var(--text); font-weight:600;">Entrada:</span> {{ $orden->observacion_entrada }}
-                </div>
-                @endif
-                @if($orden->observacion_salida)
-                <div style="margin-top:.3rem; font-size:.82rem; color:var(--muted);">
-                    <span style="color:var(--text); font-weight:600;">Salida:</span> {{ $orden->observacion_salida }}
-                </div>
-                @endif
             </div>
+            @if($diag->proforma->ordenTrabajo)
+                @php $orden = $diag->proforma->ordenTrabajo; @endphp
+                <div style="background:rgba(245,166,35,.05); border:1px solid rgba(245,166,35,.15); border-radius:6px; padding:.9rem 1rem; margin-top:.5rem;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.5rem;">
+                        <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:.95rem;">
+                            🔧 Orden de Trabajo #{{ $orden->nro }}
+                        </div>
+                        <span class="badge">{{ $orden->estado ?? 'Sin estado' }}</span>
+                    </div>
+                    <div style="font-size:.82rem; color:var(--muted); margin-top:.5rem;">
+                        Inicio: {{ \Carbon\Carbon::parse($orden->fecha_inicio)->format('d/m/Y') }}
+                        @if($orden->kilometraje) · Km: {{ number_format($orden->kilometraje) }} @endif
+                    </div>
+                </div>
+            @endif
         @else
             <div style="font-size:.8rem; color:var(--muted); font-style:italic;">
-                Sin proforma ni orden de trabajo generada aún.
+                Sin proforma generada aún.
             </div>
         @endif
 

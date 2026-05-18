@@ -41,7 +41,7 @@ class OrdenTrabajoController extends Controller
             'kilometraje'         => $request->kilometraje,
             'observacion_entrada' => $observacion,
             'observacion_salida'  => null,
-            'placa_auto'          => $request->placa,
+            'placa_auto'          => strtoupper($request->placa),
         ]);
 
         Bitacora::registrar('Registro de Unidad', "Orden #{$orden->nro} - Placa: {$request->placa}");

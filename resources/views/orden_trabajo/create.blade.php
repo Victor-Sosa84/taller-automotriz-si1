@@ -28,11 +28,27 @@
         <div class="form-grid">
             <div class="field-group">
                 <label for="placa">Placa <span class="req">*</span></label>
-                <input id="placa" name="placa" type="text" value="{{ old('placa', $placa ?? $auto?->placa) }}" {{ $auto ? 'readonly' : '' }} placeholder="Ingrese o seleccione placa" />
+                <input id="placa" name="placa" type="text" 
+                    value="{{ old('placa', $placa ?? $auto?->placa) }}" 
+                    {{ $auto ? 'readonly' : '' }} 
+                    placeholder="Ej. 3046FIJ"
+                    maxlength="9"
+                    autocomplete="off"
+                    style="text-transform:uppercase; letter-spacing:.05em;"
+                    @if(!$auto) oninput="formatearPlaca(this)" @endif />
+                @if(!$auto)
+                    <span style="font-size:.7rem; color:var(--muted); margin-top:.2rem;">
+                        Formato Bolivia: 3-4 dígitos seguidos de 2-3 letras (ej. 3046FIJ, 173YYY)
+                    </span>
+                @endif
             </div>
             <div class="field-group">
                 <label for="kilometraje">Kilometraje <span class="req">*</span></label>
-                <input id="kilometraje" name="kilometraje" type="number" min="0" value="{{ old('kilometraje') }}" placeholder="Ej. 125000" />
+                <input id="kilometraje" name="kilometraje" type="number" min="0" max="999999"
+                    value="{{ old('kilometraje') }}" 
+                    placeholder="Ej. 125000"
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);"
+                    style="width:100%; box-sizing:border-box;" />
             </div>
 
             <div class="field-group">
@@ -73,3 +89,26 @@
     </form>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function formatearPlaca(input) {
+    const cursor = input.selectionStart;
+    const anterior = input.value;
+    
+    let val = anterior.toUpperCase().replace(/[^A-Z0-9\-]/g, '').slice(0, 9);
+    
+    if (input.value !== val) {
+        input.value = val;
+        input.setSelectionRange(cursor, cursor);
+    }
+
+    const esValida = /^\d{3,4}[A-Z]{2,3}$/.test(val);
+    if (val.length >= 5) {
+        input.style.borderColor = esValida ? 'var(--success)' : 'var(--danger)';
+    } else {
+        input.style.borderColor = '';
+    }
+}
+</script>
+@endpush

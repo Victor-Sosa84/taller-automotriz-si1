@@ -12,6 +12,7 @@ use App\Http\Controllers\OrdenTrabajoController;
 use App\Http\Controllers\PermisoController;
 use App\Http\Controllers\RolController;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\ProformaController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -98,11 +99,22 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/diagnostico/create',   [DiagnosticoController::class, 'create'])->name('diagnostico.create')->middleware('permiso:CU05_ADD');
     Route::post('/diagnostico/store',   [DiagnosticoController::class, 'store'])->name('diagnostico.store')->middleware('permiso:CU05_ADD');
+    Route::get('/diagnostico/{diagnostico}', [DiagnosticoController::class, 'show'])->name('diagnostico.show')->middleware('permiso:CU05_BUS');
 
     // ── Historial ─────────────────────────────────────────────
     Route::get('/historial',           [HistorialController::class, 'index'])->name('historial.index')->middleware('permiso:CU03_BUS');
     Route::get('/historial/{placa}',   [HistorialController::class, 'show'])->name('historial.show')->middleware('permiso:CU03_BUS');
 
-});
+    // CU-06, CU-07, CU-08
+    Route::get('/proforma/crear', [ProformaController::class, 'create'])->name('proforma.create')->middleware('permiso:CU06_ADD');
+    Route::post('/proforma', [ProformaController::class, 'store'])->name('proforma.store')->middleware('permiso:CU06_ADD');
+    Route::get('/proforma/{proforma}', [ProformaController::class, 'show'])->name('proforma.show')->middleware('permiso:CU06_BUS');
+    Route::get('/proforma/{proforma}/editar', [ProformaController::class, 'edit'])->name('proforma.edit')->middleware('permiso:CU06_MOD');
+    Route::put('/proforma/{proforma}', [ProformaController::class, 'update'])->name('proforma.update')->middleware('permiso:CU06_MOD');
+    Route::delete('/proforma/{proforma}', [ProformaController::class, 'destroy'])->name('proforma.destroy')->middleware('permiso:CU06_DEL');
+    Route::post('/proforma/{proforma}/emitir', [ProformaController::class, 'emitir'])->name('proforma.emitir')->middleware('permiso:CU07_ADD');
+    Route::post('/proforma/{proforma}/estado', [ProformaController::class, 'actualizarEstado'])->name('proforma.estado')->middleware('permiso:CU08_MOD');
+    Route::get('/proformas', [ProformaController::class, 'index'])->name('proforma.index')->middleware('permiso:CU06_BUS');
+    });
 
 require __DIR__.'/auth.php';

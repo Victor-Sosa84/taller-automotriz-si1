@@ -27,4 +27,25 @@ class Proforma extends Model
     {
         return $this->hasOne(OrdenTrabajo::class, 'nro_proforma', 'nro');
     }
+
+    public function repuestos()
+    {
+        return $this->hasMany(ProformaRepuesto::class, 'nro_proforma', 'nro');
+    }
+
+    public function servicios()
+    {
+        return $this->hasMany(ProformaServicio::class, 'nro_proforma', 'nro');
+    }
+
+    public function calcularTotal(): float
+    {
+        $totalRepuestos = $this->repuestos->sum(function ($r) {
+            return ($r->precio_unitario * $r->cantidad) * (1 - $r->descuento / 100);
+        });
+        $totalServicios = $this->servicios->sum(function ($s) {
+            return $s->costo * $s->cantidad;
+        });
+        return round($totalRepuestos + $totalServicios, 2);
+    }
 }

@@ -15,10 +15,10 @@ class AutoController extends Controller
         if ($search = $request->get('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('placa',  'like', "%{$search}%")
-                  ->orWhere('marca',  'like', "%{$search}%")
-                  ->orWhere('modelo', 'like', "%{$search}%")
-                  ->orWhere('color',  'like', "%{$search}%")
-                  ->orWhere('tipo',   'like', "%{$search}%");
+                    ->orWhere('marca',  'like', "%{$search}%")
+                    ->orWhere('modelo', 'like', "%{$search}%")
+                    ->orWhere('color',  'like', "%{$search}%")
+                    ->orWhere('tipo',   'like', "%{$search}%");
             });
         }
 
@@ -43,12 +43,19 @@ class AutoController extends Controller
             'tipo'   => ['nullable', 'string', 'max:50'],
         ]);
 
-        Auto::create($request->only(['placa', 'marca', 'modelo', 'anio', 'color', 'tipo']));
+        Auto::create([
+            'placa'  => strtoupper($request->placa),
+            'marca'  => $request->marca,
+            'modelo' => $request->modelo,
+            'anio'   => $request->anio,
+            'color'  => $request->color,
+            'tipo'   => $request->tipo,
+        ]);
 
-        Bitacora::registrar('Registro de Vehículo', "Placa: {$request->placa}");
-
+        Bitacora::registrar('Registro de Vehículo', "Placa: " . strtoupper($request->placa));
+        
         return redirect()->route('autos.index')
-                         ->with('success', "Vehículo «{$request->placa}» registrado correctamente.");
+                        ->with('success', "Vehículo «" . strtoupper($request->placa) . "» registrado correctamente.");
     }
 
     public function show(string $placa)
@@ -85,7 +92,7 @@ class AutoController extends Controller
         Bitacora::registrar('Edición de Vehículo', "Placa: {$placa}");
 
         return redirect()->route('autos.index')
-                         ->with('success', "Vehículo «{$placa}» actualizado correctamente.");
+                        ->with('success', "Vehículo «{$placa}» actualizado correctamente.");
     }
 
     public function destroy(string $placa)
@@ -102,6 +109,6 @@ class AutoController extends Controller
         $auto->delete();
 
         return redirect()->route('autos.index')
-                         ->with('success', "Vehículo «{$placa}» eliminado.");
+                        ->with('success', "Vehículo «{$placa}» eliminado.");
     }
 }

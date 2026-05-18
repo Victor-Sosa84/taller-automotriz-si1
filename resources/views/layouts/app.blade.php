@@ -114,11 +114,18 @@
         </a>
 
         {{-- Historial --}}
-        @if(auth()->user()->puede('CU03_BUS'))
+        @if(auth()->user()->puede('CU03_BUS') || auth()->user()->puede('CU06_BUS'))
         <div class="nav-section">Consultas</div>
+        @if(auth()->user()->puede('CU03_BUS'))
         <a href="{{ route('historial.index') }}" class="nav-item {{ request()->routeIs('historial*') ? 'active' : '' }}" onclick="cerrarSidebar()">
             <span class="nav-icon">📋</span> Historial
         </a>
+        @endif
+        @if(auth()->user()->puede('CU06_BUS'))
+        <a href="{{ route('proforma.index') }}" class="nav-item {{ request()->routeIs('proforma.index') ? 'active' : '' }}" onclick="cerrarSidebar()">
+            <span class="nav-icon">📄</span> Proformas
+        </a>
+        @endif
         @endif
 
         {{-- Administración --}}
