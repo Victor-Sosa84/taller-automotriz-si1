@@ -121,9 +121,9 @@
                             @if($r->repuesto->marca) <span style="color:#aaa;">— {{ $r->repuesto->marca }}</span> @endif
                         </td>
                         <td class="text-center">{{ $r->cantidad }}</td>
-                        <td class="text-right">Bs {{ number_format($r->precio_unitario, 2) }}</td>
-                        <td class="text-right">{{ $r->descuento }}%</td>
-                        <td class="text-right" style="font-weight:600;">Bs {{ number_format($sub, 2) }}</td>
+                        <td class="text-right" style="white-space:nowrap;">Bs {{ number_format($r->precio_unitario, 2) }}</td>
+                        <td class="text-right" style="white-space:nowrap;">{{ $r->descuento }}%</td>
+                        <td class="text-right" style="font-weight:700; white-space:nowrap;">Bs {{ number_format($sub, 2) }}</td>
                     </tr>
                 @empty
                     <tr class="empty-row"><td colspan="6">Sin repuestos</td></tr>
@@ -152,8 +152,8 @@
                         <td style="color:#aaa;">{{ $i + 1 }}</td>
                         <td>{{ $s->manoObra->descripcion ?? '—' }}</td>
                         <td class="text-center">{{ $s->cantidad }}</td>
-                        <td class="text-right">Bs {{ number_format($s->costo, 2) }}</td>
-                        <td class="text-right" style="font-weight:600;">Bs {{ number_format($sub, 2) }}</td>
+                        <td class="text-right" style="white-space:nowrap;">Bs {{ number_format($s->costo, 2) }}</td>
+                        <td class="text-right" style="font-weight:700; white-space:nowrap;">Bs {{ number_format($sub, 2) }}</td>
                     </tr>
                 @empty
                     <tr class="empty-row"><td colspan="5">Sin servicios</td></tr>
