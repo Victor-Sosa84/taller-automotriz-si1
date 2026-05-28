@@ -115,6 +115,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/proforma/{proforma}/emitir', [ProformaController::class, 'emitir'])->name('proforma.emitir')->middleware('permiso:CU07_ADD');
     Route::post('/proforma/{proforma}/estado', [ProformaController::class, 'actualizarEstado'])->name('proforma.estado')->middleware('permiso:CU08_MOD');
     Route::get('/proformas', [ProformaController::class, 'index'])->name('proforma.index')->middleware('permiso:CU06_BUS');
+    Route::get('/proforma/{proforma}/pdf', [ProformaController::class, 'pdf'])->name('proforma.pdf')->middleware('permiso:CU07_GEN');
     });
 
 require __DIR__.'/auth.php';

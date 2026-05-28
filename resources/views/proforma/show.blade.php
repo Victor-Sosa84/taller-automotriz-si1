@@ -33,6 +33,11 @@
             </p>
         </div>
         <div style="display:flex; gap:.5rem; flex-wrap:wrap; align-items:flex-start;">
+            @if($proforma->estado !== 'Borrador')
+                <a href="{{ route('proforma.pdf', $proforma->nro) }}" class="btn btn-ghost btn-sm" target="_blank">
+                    ⬇ Descargar PDF
+                </a>
+            @endif
             @if($proforma->estado === 'Borrador')
                 <a href="{{ route('proforma.edit', $proforma->nro) }}" class="btn btn-ghost btn-sm">✏ Editar</a>
                 <form method="POST" action="{{ route('proforma.emitir', $proforma->nro) }}" style="display:inline;">

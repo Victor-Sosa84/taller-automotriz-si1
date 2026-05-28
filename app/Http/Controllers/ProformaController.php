@@ -11,6 +11,7 @@ use App\Models\ProformaRepuesto;
 use App\Models\ProformaServicio;
 use App\Models\Repuesto;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ProformaController extends Controller
 {
@@ -242,5 +243,13 @@ class ProformaController extends Controller
 
         $proformas = $query->paginate(15)->withQueryString();
         return view('proforma.index', compact('proformas'));
+    }
+
+    public function pdf(Proforma $proforma)
+    {
+        $proforma->load('repuestos.repuesto', 'servicios.manoObra', 'diagnostico.auto', 'cliente');
+        $pdf = Pdf::loadView('proforma.pdf', compact('proforma'));
+        $pdf->setPaper('A4', 'portrait');
+        return $pdf->download("proforma-{$proforma->nro}.pdf");
     }
 }
