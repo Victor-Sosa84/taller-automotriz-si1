@@ -28,13 +28,13 @@ Sistema web desarrollado con **Laravel 11** para la gestión interna del Taller 
 | Ciclo | Casos de Uso | Estado |
 |---|---|---|
 | **Ciclo 1** — Base y Seguridad | CU-01, CU-02, CU-03, CU-13, CU-19, CU-20, CU-21 | ✅ Completado |
-| **Ciclo 2** — Recepción y Presupuesto | CU-04, CU-05, CU-06, CU-07, CU-08 | 🔄 En desarrollo |
-| **Ciclo 3** — Gestión Operativa | CU-09, CU-10, CU-14, CU-15, CU-16 | ⏳ Pendiente |
+| **Ciclo 2** — Recepción y Presupuesto | CU-04, CU-05, CU-06, CU-07, CU-08 | ✅ Completado |
+| **Ciclo 3** — Gestión Operativa | CU-09, CU-10, CU-14, CU-15, CU-16 | 🔄 En desarrollo |
 | **Ciclo 4** — Liquidación y Salida | CU-11, CU-12, CU-17, CU-18 | ⏳ Pendiente |
 
 ---
 
-## Módulos implementados (Ciclo 1)
+## Módulos implementados (Ciclo 1 y 2)
 
 | Módulo | Descripción | Privilegios requeridos |
 |---|---|---|
@@ -47,6 +47,11 @@ Sistema web desarrollado con **Laravel 11** para la gestión interna del Taller 
 | Clientes | Registro y edición (CU-01) | CU01_ADD/MOD/BUS |
 | Vehículos | Ficha técnica con validación de placa (CU-02) | CU02_ADD/MOD/ELI/BUS |
 | Historial | Consulta de diagnósticos y OT por vehículo (CU-03) | CU03_BUS |
+| Ingresos | Registro de entrada de vehículos al taller (CU-04) | CU04_ADD/MOD/BUS |
+| Diagnóstico | Registro de fallas técnicas por mecánico (CU-05) | CU05_ADD/MOD/BUS |
+| Proforma | Elaboración de presupuesto con repuestos y MO (CU-06) | CU06_ADD/MOD/BUS/ELI |
+| Cotización | Emisión del documento formal al cliente (CU-07) | CU07_ADD |
+| Estado Proforma | Gestión de estados Borrador→Emitida→Aprobada/Observada/Anulada (CU-08) | CU08_MOD |
 
 ---
 
@@ -172,6 +177,9 @@ app/
 │   │   ├── AutoController         ← CU-02: Gestionar Ficha Técnica
 │   │   ├── HistorialController    ← CU-03: Consultar Historial
 │   │   ├── CargoController        ← Tipos de trabajo del personal
+│   │   ├── OrdenTrabajoController     ← CU-04: Gestionar Ingreso
+│   │   ├── DiagnosticoController      ← CU-05: Realizar Diagnóstico
+│   │   ├── ProformaController         ← CU-06/07/08: Proforma
 │   │   └── BitacoraController     ← CU-21: Consultar Bitácora
 │   ├── Middleware/
 │   │   └── CheckPermiso.php       ← Verificación de privilegios por CU
@@ -190,7 +198,10 @@ resources/views/
 ├── clientes/                      ← CU-01
 ├── autos/                         ← CU-02
 ├── historial/                     ← CU-03
-└── bitacora/                      ← CU-21
+├── bitacora/                      ← CU-21
+├── ingresos/                      ← CU-04
+├── diagnosticos/                  ← CU-05
+└── proformas/                     ← CU-06, CU-07, CU-08
 routes/
 ├── web.php                        ← Rutas protegidas por privilegio
 └── auth.php                       ← Rutas de autenticación
