@@ -16,6 +16,7 @@ use App\Http\Controllers\ProformaController;
 use App\Http\Controllers\AsignacionController;
 use App\Http\Controllers\DetalleOTController;
 use App\Http\Controllers\CatalogoController;
+use App\Http\Controllers\PrestamoController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -155,6 +156,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/catalogos/marcas', [CatalogoController::class, 'storeMarca'])->name('catalogo.marca.store')->middleware('permiso:CU13_PRI');
     Route::put('/catalogos/marcas/{id}', [CatalogoController::class, 'updateMarca'])->name('catalogo.marca.update')->middleware('permiso:CU13_PRI');
     Route::delete('/catalogos/marcas/{id}', [CatalogoController::class, 'destroyMarca'])->name('catalogo.marca.destroy')->middleware('permiso:CU13_PRI');
+    
+    // ── CU-09 Gestionar préstamo de herramientas ─────────────────────────────────────
+    Route::get('/prestamos', [PrestamoController::class, 'obtenerPrestamos'])->name('prestamo.index')->middleware('permiso:CU09_BUS');
+    Route::post('/prestamos', [PrestamoController::class, 'registrarPrestamos'])->name('prestamo.store')->middleware('permiso:CU09_ADD');
     });
 
 require __DIR__.'/auth.php';
