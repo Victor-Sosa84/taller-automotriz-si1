@@ -39,4 +39,9 @@ class OrdenTrabajo extends Model
     {
         return $this->hasMany(DetalleRepuesto::class, 'nro_orden_trabajo', 'nro');
     }
+
+    public function realiza()
+    {
+        return $this->hasMany(Realiza::class, 'nro_orden_trabajo', 'nro');
+    }
 }

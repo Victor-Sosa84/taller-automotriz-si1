@@ -13,6 +13,7 @@ use App\Http\Controllers\PermisoController;
 use App\Http\Controllers\RolController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\ProformaController;
+use App\Http\Controllers\AsignacionController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -117,12 +118,18 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/proformas', [ProformaController::class, 'index'])->name('proforma.index')->middleware('permiso:CU06_BUS');
     Route::get('/proforma/{proforma}/pdf', [ProformaController::class, 'pdf'])->name('proforma.pdf')->middleware('permiso:CU07_GEN');
     
-    // ── CU-14 Órdenes de Trabajo ─────────────────────────────────────
+    // ── CU-14 Gestionar orden de trabajo ─────────────────────────────────────
     Route::get('/ordenes',              [OrdenTrabajoController::class, 'obtenerOrdenes'])->name('orden_trabajo.index')->middleware('permiso:CU14_BUS');
     Route::get('/ordenes/{nro}',        [OrdenTrabajoController::class, 'obtenerOrden'])->name('orden_trabajo.show')->middleware('permiso:CU14_BUS');
     Route::get('/ordenes/{nro}/editar', [OrdenTrabajoController::class, 'actualizarOrden'])->name('orden_trabajo.edit')->middleware('permiso:CU14_MOD');
     Route::put('/ordenes/{nro}',        [OrdenTrabajoController::class, 'actualizarOrden'])->name('orden_trabajo.update')->middleware('permiso:CU14_MOD');
     Route::get('/ordenes/{nro}/editar', [OrdenTrabajoController::class, 'editarOrden'])->name('orden_trabajo.edit')->middleware('permiso:CU14_MOD');
+    
+    // ── CU-15 Asignación responsables a tareas ─────────────────────────────────────
+    Route::get('/ordenes/{nro}/asignaciones', [AsignacionController::class, 'obtenerAsignaciones'])->name('asignacion.index')->middleware('permiso:CU15_BUS');
+    Route::post('/ordenes/{nro}/asignaciones', [AsignacionController::class, 'registrarAsignacion'])->name('asignacion.store')->middleware('permiso:CU15_ADD');
+    Route::put('/ordenes/{nro}/asignaciones/{ci}/{idManoObra}', [AsignacionController::class, 'actualizarAsignacion'])->name('asignacion.update')->middleware('permiso:CU15_MOD');
+    
     });
 
 require __DIR__.'/auth.php';
