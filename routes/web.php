@@ -15,6 +15,7 @@ use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\ProformaController;
 use App\Http\Controllers\AsignacionController;
 use App\Http\Controllers\DetalleOTController;
+use App\Http\Controllers\CatalogoController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -136,6 +137,24 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/ordenes/{nro}/detalles', [DetalleOTController::class, 'registrarDetalles'])->name('detalle_ot.store')->middleware('permiso:CU16_ADD');
     Route::put('/ordenes/{nro}/detalles/{tipo}/{id}', [DetalleOTController::class, 'editarDetalles'])->name('detalle_ot.update')->middleware('permiso:CU16_MOD');
     Route::delete('/ordenes/{nro}/detalles/{tipo}/{id}', [DetalleOTController::class, 'eliminarDetalles'])->name('detalle_ot.destroy')->middleware('permiso:CU16_DEL');
+    
+    // ── Gestionar catálogo de taller ─────────────────────────────────────
+    Route::get('/catalogos/taller', [CatalogoController::class, 'taller'])->name('catalogo.taller')->middleware('permiso:CU13_PRI');
+    Route::post('/catalogos/repuestos', [CatalogoController::class, 'storeRepuesto'])->name('catalogo.repuesto.store')->middleware('permiso:CU13_PRI');
+    Route::put('/catalogos/repuestos/{id}', [CatalogoController::class, 'updateRepuesto'])->name('catalogo.repuesto.update')->middleware('permiso:CU13_PRI');
+    Route::delete('/catalogos/repuestos/{id}', [CatalogoController::class, 'destroyRepuesto'])->name('catalogo.repuesto.destroy')->middleware('permiso:CU13_PRI');
+    Route::post('/catalogos/mano-obra', [CatalogoController::class, 'storeManoObra'])->name('catalogo.mo.store')->middleware('permiso:CU13_PRI');
+    Route::put('/catalogos/mano-obra/{id}', [CatalogoController::class, 'updateManoObra'])->name('catalogo.mo.update')->middleware('permiso:CU13_PRI');
+    Route::delete('/catalogos/mano-obra/{id}', [CatalogoController::class, 'destroyManoObra'])->name('catalogo.mo.destroy')->middleware('permiso:CU13_PRI');
+    Route::post('/catalogos/herramientas', [CatalogoController::class, 'storeHerramienta'])->name('catalogo.herramienta.store')->middleware('permiso:CU13_PRI');
+    Route::put('/catalogos/herramientas/{nro}', [CatalogoController::class, 'updateHerramienta'])->name('catalogo.herramienta.update')->middleware('permiso:CU13_PRI');
+    Route::delete('/catalogos/herramientas/{nro}', [CatalogoController::class, 'destroyHerramienta'])->name('catalogo.herramienta.destroy')->middleware('permiso:CU13_PRI');
+    Route::post('/catalogos/tipos', [CatalogoController::class, 'storeTipo'])->name('catalogo.tipo.store')->middleware('permiso:CU13_PRI');
+    Route::put('/catalogos/tipos/{id}', [CatalogoController::class, 'updateTipo'])->name('catalogo.tipo.update')->middleware('permiso:CU13_PRI');
+    Route::delete('/catalogos/tipos/{id}', [CatalogoController::class, 'destroyTipo'])->name('catalogo.tipo.destroy')->middleware('permiso:CU13_PRI');
+    Route::post('/catalogos/marcas', [CatalogoController::class, 'storeMarca'])->name('catalogo.marca.store')->middleware('permiso:CU13_PRI');
+    Route::put('/catalogos/marcas/{id}', [CatalogoController::class, 'updateMarca'])->name('catalogo.marca.update')->middleware('permiso:CU13_PRI');
+    Route::delete('/catalogos/marcas/{id}', [CatalogoController::class, 'destroyMarca'])->name('catalogo.marca.destroy')->middleware('permiso:CU13_PRI');
     });
 
 require __DIR__.'/auth.php';

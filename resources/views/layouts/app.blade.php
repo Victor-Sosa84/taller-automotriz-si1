@@ -184,6 +184,15 @@
         @endif
         @endif
 
+        @if(auth()->user()->puede('CU13_PRI'))
+        <div class="nav-section">Catálogos</div>
+        <a href="{{ route('catalogo.taller') }}"
+        class="nav-item {{ request()->routeIs('catalogo.*') ? 'active' : '' }}"
+        onclick="cerrarSidebar()">
+            <span class="nav-icon">🔩</span> Taller
+        </a>
+        @endif
+
     </nav>
     <div class="sidebar-footer">
         <form method="POST" action="{{ route('logout') }}">

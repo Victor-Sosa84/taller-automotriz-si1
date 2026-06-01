@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             TipoTrabajadorSeeder::class,
             TipoHerramientaSeeder::class,
             MarcaHerramientaSeeder::class,
+            HerramientaSeeder::class, 
             CatalogoSeeder::class,
 
             // ── Nivel 2: depende de rol + persona ─────────────────
