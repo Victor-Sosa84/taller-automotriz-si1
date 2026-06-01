@@ -210,9 +210,15 @@ class ProformaController extends Controller
         $proforma->update(['estado' => $request->estado]);
 
         if ($request->estado === 'Aprobada') {
-            $orden = OrdenTrabajo::where('nro_proforma', $proforma->nro)->first();
+            $orden = OrdenTrabajo::where('placa_auto', $proforma->diagnostico->placa_auto)
+                        ->whereNull('nro_proforma')
+                        ->latest('nro')
+                        ->first();
             if ($orden) {
-                $orden->update(['estado' => 'Aprobada']);
+                $orden->update([
+                    'nro_proforma' => $proforma->nro,
+                    'estado'       => 'En Proceso',
+                ]);
             }
         }
 

@@ -49,4 +49,44 @@ class OrdenTrabajoController extends Controller
         return redirect()->route('diagnostico.create', ['orden_id' => $orden->nro])
                         ->with('success', 'Unidad registrada. Continúe con el diagnóstico.');
     }
+
+    public function obtenerOrdenes()
+    {
+        $ordenes = OrdenTrabajo::with(['proforma', 'auto'])->get();
+        return view('orden_trabajo.index', compact('ordenes'));
+    }
+
+    public function obtenerOrden(int $nro)
+    {
+        $orden = OrdenTrabajo::with(['proforma.cliente', 'auto'])->findOrFail($nro);
+        return view('orden_trabajo.show', compact('orden'));
+    }
+
+    public function actualizarOrden(Request $request, int $nro)
+    {
+        $orden = OrdenTrabajo::findOrFail($nro);
+
+        $request->validate([
+            'estado'             => ['required', 'string'],
+            'observacion_salida' => ['nullable', 'string', 'max:1000'],
+            'fecha_fin'          => ['nullable', 'date'],
+        ]);
+
+        $orden->update([
+            'estado'             => $request->estado,
+            'observacion_salida' => $request->observacion_salida,
+            'fecha_fin'          => $request->fecha_fin,
+        ]);
+
+        Bitacora::registrar('Actualización de Orden de Trabajo', "Orden #{$nro} - Estado: {$request->estado}");
+
+        return redirect()->route('orden_trabajo.show', $nro)
+                        ->with('success', 'Orden de trabajo actualizada correctamente.');
+    }
+
+    public function editarOrden(int $nro)
+    {
+        $orden = OrdenTrabajo::with(['proforma.cliente', 'auto'])->findOrFail($nro);
+        return view('orden_trabajo.edit', compact('orden'));
+    }
 }

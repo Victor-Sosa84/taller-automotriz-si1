@@ -116,6 +116,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/proforma/{proforma}/estado', [ProformaController::class, 'actualizarEstado'])->name('proforma.estado')->middleware('permiso:CU08_MOD');
     Route::get('/proformas', [ProformaController::class, 'index'])->name('proforma.index')->middleware('permiso:CU06_BUS');
     Route::get('/proforma/{proforma}/pdf', [ProformaController::class, 'pdf'])->name('proforma.pdf')->middleware('permiso:CU07_GEN');
+    
+    // ── CU-14 Órdenes de Trabajo ─────────────────────────────────────
+    Route::get('/ordenes',              [OrdenTrabajoController::class, 'obtenerOrdenes'])->name('orden_trabajo.index')->middleware('permiso:CU14_BUS');
+    Route::get('/ordenes/{nro}',        [OrdenTrabajoController::class, 'obtenerOrden'])->name('orden_trabajo.show')->middleware('permiso:CU14_BUS');
+    Route::get('/ordenes/{nro}/editar', [OrdenTrabajoController::class, 'actualizarOrden'])->name('orden_trabajo.edit')->middleware('permiso:CU14_MOD');
+    Route::put('/ordenes/{nro}',        [OrdenTrabajoController::class, 'actualizarOrden'])->name('orden_trabajo.update')->middleware('permiso:CU14_MOD');
+    Route::get('/ordenes/{nro}/editar', [OrdenTrabajoController::class, 'editarOrden'])->name('orden_trabajo.edit')->middleware('permiso:CU14_MOD');
     });
 
 require __DIR__.'/auth.php';

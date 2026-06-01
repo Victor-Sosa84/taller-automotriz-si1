@@ -166,13 +166,22 @@
         @endif
         @endif
 
-        @if(auth()->user()->puede('CU04_ADD'))
+        @if(auth()->user()->puede('CU04_ADD') || auth()->user()->puede('CU14_BUS'))
         <div class="nav-section">Operaciones</div>
+        @if(auth()->user()->puede('CU04_ADD'))
         <a href="{{ route('orden-trabajo.create') }}"
             class="nav-item {{ request()->routeIs('orden-trabajo.*', 'diagnostico.*') ? 'active' : '' }}"
             onclick="cerrarSidebar()">
             <span class="nav-icon">＋</span> Ingresos
         </a>
+        @endif
+        @if(auth()->user()->puede('CU14_BUS'))
+        <a href="{{ route('orden_trabajo.index') }}"
+            class="nav-item {{ request()->routeIs('ordenes*') ? 'active' : '' }}"
+            onclick="cerrarSidebar()">
+            <span class="nav-icon">🔧</span> Órdenes de Trabajo
+        </a>
+        @endif
         @endif
 
     </nav>
