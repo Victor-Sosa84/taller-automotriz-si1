@@ -14,6 +14,7 @@ use App\Http\Controllers\RolController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\ProformaController;
 use App\Http\Controllers\AsignacionController;
+use App\Http\Controllers\DetalleOTController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -130,6 +131,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/ordenes/{nro}/asignaciones', [AsignacionController::class, 'registrarAsignacion'])->name('asignacion.store')->middleware('permiso:CU15_ADD');
     Route::put('/ordenes/{nro}/asignaciones/{ci}/{idManoObra}', [AsignacionController::class, 'actualizarAsignacion'])->name('asignacion.update')->middleware('permiso:CU15_MOD');
     
+    // ── CU-16 Registrar repuestos y mano de obra ─────────────────────────────────────
+    Route::get('/ordenes/{nro}/detalles', [DetalleOTController::class, 'obtenerDetalles'])->name('detalle_ot.index')->middleware('permiso:CU16_BUS');
+    Route::post('/ordenes/{nro}/detalles', [DetalleOTController::class, 'registrarDetalles'])->name('detalle_ot.store')->middleware('permiso:CU16_ADD');
+    Route::put('/ordenes/{nro}/detalles/{tipo}/{id}', [DetalleOTController::class, 'editarDetalles'])->name('detalle_ot.update')->middleware('permiso:CU16_MOD');
+    Route::delete('/ordenes/{nro}/detalles/{tipo}/{id}', [DetalleOTController::class, 'eliminarDetalles'])->name('detalle_ot.destroy')->middleware('permiso:CU16_DEL');
     });
 
 require __DIR__.'/auth.php';

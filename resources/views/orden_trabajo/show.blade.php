@@ -96,6 +96,9 @@
             @if(auth()->user()->puede('CU15_BUS'))
             <a href="{{ route('asignacion.index', $orden->nro) }}" class="btn btn-ghost">Asignar Responsables</a>
             @endif
+            @if(auth()->user()->puede('CU16_BUS'))
+            <a href="{{ route('detalle_ot.index', $orden->nro) }}" class="btn btn-ghost">Ver Detalles</a>
+            @endif
             @if(auth()->user()->puede('CU14_MOD'))
             <a href="{{ route('orden_trabajo.edit', $orden->nro) }}" class="btn btn-primary">Modificar Orden</a>
             @endif
