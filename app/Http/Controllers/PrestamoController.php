@@ -38,7 +38,7 @@ class PrestamoController extends Controller
         DetallePrestamo::create([
             'id_prestamo_herramienta' => $prestamo->id,
             'nro_herramienta'         => $request->nro_herramienta,
-            'estado_salida'           => $request->estado_salida ?? 'Bueno',
+            'estado_salida'           => $herramienta->estado,
             'estado_retorno'          => null,
         ]);
 

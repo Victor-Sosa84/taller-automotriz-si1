@@ -42,12 +42,10 @@
                         value="{{ now()->format('Y-m-d\TH:i') }}" required />
                 </div>
                 <div class="field-group" style="grid-column:1 / -1;">
-                    <label for="estado_salida">Estado de Salida</label>
-                    <select id="estado_salida" name="estado_salida">
-                        <option value="Bueno">Bueno</option>
-                        <option value="Regular">Regular</option>
-                        <option value="Malo">Malo</option>
-                    </select>
+                    <label>Estado actual de la herramienta</label>
+                    <span id="estado-herramienta" style="font-size:.9rem; color:var(--muted);">
+                        Seleccioná una herramienta para ver su estado.
+                    </span>
                 </div>
             </div>
             <div class="form-actions">
@@ -71,6 +69,7 @@
                     <th>Fecha Salida</th>
                     <th>Fecha Devolución</th>
                     <th>Estado Retorno</th>
+                    <th style="text-align:center;">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -89,6 +88,11 @@
                                 <span style="color:var(--accent);">Pendiente</span>
                             @endif
                         </td>
+                        <td style="text-align:center;">
+                            @if(!$p->fecha_devolucion && auth()->user()->puede('CU10_MOD'))
+                            <button onclick="abrirDevolucion({{ $p->id }})" class="btn btn-sm btn-primary">Registrar Devolución</button>
+                            @endif
+                        </td>
                     </tr>
                     @endforeach
                 @empty
@@ -100,4 +104,65 @@
         </table>
     </div>
 </div>
+
+<div id="modal-devolucion" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:500; align-items:center; justify-content:center;">
+    <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:2rem; width:100%; max-width:460px; margin:1rem;">
+        <h3 style="font-family:'Barlow Condensed',sans-serif; font-size:1.2rem; font-weight:700; margin-bottom:1.25rem;">Registrar Devolución</h3>
+        <form id="form-devolucion" method="POST">
+            @csrf @method('PUT')
+            <div class="form-grid">
+                <div class="field-group">
+                    <label>Fecha de Devolución <span class="req">*</span></label>
+                    <input id="dev-fecha" name="fecha_devolucion" type="datetime-local"
+                        value="{{ now()->format('Y-m-d\TH:i') }}" required />
+                </div>
+                <div class="field-group">
+                    <label>Estado de Retorno <span class="req">*</span></label>
+                    <select id="dev-estado-retorno" name="estado_retorno">
+                        <option value="Bueno">Bueno</option>
+                        <option value="Regular">Regular</option>
+                        <option value="Malo">Malo</option>
+                    </select>
+                </div>
+                <div class="field-group" style="grid-column:1/-1;">
+                    <label>Estado de la Herramienta <span class="req">*</span></label>
+                    <select name="estado">
+                        <option value="Bueno">Bueno</option>
+                        <option value="Regular">Regular</option>
+                        <option value="Malo">Malo</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display:flex; gap:.75rem; justify-content:flex-end; margin-top:1.25rem;">
+                <button type="button" onclick="cerrarDevolucion()" class="btn btn-ghost" style="color:var(--muted);">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Confirmar Devolución</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @endsection
+
+@push('scripts')
+<script>
+function abrirDevolucion(id) {
+    document.getElementById('form-devolucion').action = `/prestamos/${id}/devolucion`;
+    document.getElementById('modal-devolucion').style.display = 'flex';
+}
+function cerrarDevolucion() {
+    document.getElementById('modal-devolucion').style.display = 'none';
+}
+
+document.getElementById('nro_herramienta').addEventListener('change', function() {
+    const estados = {
+        @foreach($herramientas as $h)
+        {{ $h->nro }}: '{{ $h->estado }}',
+        @endforeach
+    };
+    const estado = estados[this.value] || '—';
+    const color = estado === 'Bueno' ? 'var(--success)' : estado === 'Regular' ? 'var(--accent)' : 'var(--danger)';
+    document.getElementById('estado-herramienta').innerHTML = 
+        `<span class="badge" style="background:rgba(0,0,0,.2);color:${color};border:1px solid ${color};">${estado}</span>`;
+});
+</script>
+@endpush
