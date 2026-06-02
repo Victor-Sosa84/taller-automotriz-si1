@@ -29,7 +29,7 @@ Sistema web desarrollado con **Laravel 11** para la gestión interna del Taller 
 |---|---|---|
 | **Ciclo 1** — Base y Seguridad | CU-01, CU-02, CU-03, CU-13, CU-19, CU-20, CU-21 | ✅ Completado |
 | **Ciclo 2** — Recepción y Presupuesto | CU-04, CU-05, CU-06, CU-07, CU-08 | ✅ Completado |
-| **Ciclo 3** — Gestión Operativa | CU-09, CU-10, CU-14, CU-15, CU-16 | 🔄 En desarrollo |
+| **Ciclo 3** — Gestión Operativa | CU-09, CU-10, CU-14, CU-15, CU-16 | ✅ Completado |
 | **Ciclo 4** — Liquidación y Salida | CU-11, CU-12, CU-17, CU-18 | ⏳ Pendiente |
 
 ---
@@ -52,6 +52,12 @@ Sistema web desarrollado con **Laravel 11** para la gestión interna del Taller 
 | Proforma | Elaboración de presupuesto con repuestos y MO (CU-06) | CU06_ADD/MOD/BUS/ELI |
 | Cotización | Emisión del documento formal al cliente (CU-07) | CU07_ADD |
 | Estado Proforma | Gestión de estados Borrador→Emitida→Aprobada/Observada/Anulada (CU-08) | CU08_MOD |
+| Órdenes de Trabajo | Gestión del ciclo de vida de OTs vinculadas a proformas aprobadas (CU-14) | CU14_BUS/MOD |
+| Asignaciones | Asignación de responsables a tareas de una OT (CU-15) | CU15_BUS/ADD/MOD |
+| Detalles OT | Registro de repuestos y mano de obra ejecutada (CU-16) | CU16_BUS/ADD/MOD/DEL |
+| Préstamos | Registro y seguimiento de préstamos de herramientas (CU-09) | CU09_BUS/ADD/DEL |
+| Estado Herramientas | Registro de devoluciones y actualización de estado (CU-10) | CU10_MOD |
+| Catálogos | Gestión de repuestos, MO, herramientas, tipos y marcas | CU13_PRI |
 
 ---
 
@@ -177,10 +183,15 @@ app/
 │   │   ├── AutoController         ← CU-02: Gestionar Ficha Técnica
 │   │   ├── HistorialController    ← CU-03: Consultar Historial
 │   │   ├── CargoController        ← Tipos de trabajo del personal
-│   │   ├── OrdenTrabajoController     ← CU-04: Gestionar Ingreso
+│   │   ├── OrdenTrabajoController     ← CU-04: Gestionar Ingreso y CU-14: Gestionar OT
 │   │   ├── DiagnosticoController      ← CU-05: Realizar Diagnóstico
 │   │   ├── ProformaController         ← CU-06/07/08: Proforma
-│   │   └── BitacoraController     ← CU-21: Consultar Bitácora
+│   │   ├── BitacoraController         ← CU-21: Consultar Bitácora
+│   │   ├── AsignacionController       ← CU-15: Asignar Responsables
+│   │   ├── DetalleOTController        ← CU-16: Registrar Repuestos/MO
+│   │   ├── PrestamoController         ← CU-09: Préstamo Herramientas
+│   │   ├── HerramientaController      ← CU-10: Estado Herramientas
+│   │   └── CatalogoController         ← Catálogos del sistema
 │   ├── Middleware/
 │   │   └── CheckPermiso.php       ← Verificación de privilegios por CU
 │   └── Requests/Auth/LoginRequest ← Login por correo o nombre de usuario
@@ -201,7 +212,12 @@ resources/views/
 ├── bitacora/                      ← CU-21
 ├── ingresos/                      ← CU-04
 ├── diagnosticos/                  ← CU-05
-└── proformas/                     ← CU-06, CU-07, CU-08
+├── proformas/                     ← CU-06, CU-07, CU-08
+├── orden_trabajo/                 ← CU-14
+├── asignacion/                    ← CU-15
+├── detalle_ot/                    ← CU-16
+├── prestamo/                      ← CU-09, CU-10
+└── catalogo/                      ← Catálogos
 routes/
 ├── web.php                        ← Rutas protegidas por privilegio
 └── auth.php                       ← Rutas de autenticación
