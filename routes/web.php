@@ -161,7 +161,8 @@ Route::middleware(['auth'])->group(function () {
     // ── CU-09 Gestionar préstamo de herramientas ─────────────────────────────────────
     Route::get('/prestamos', [PrestamoController::class, 'obtenerPrestamos'])->name('prestamo.index')->middleware('permiso:CU09_BUS');
     Route::post('/prestamos', [PrestamoController::class, 'registrarPrestamos'])->name('prestamo.store')->middleware('permiso:CU09_ADD');
-    
+    Route::delete('/prestamos/{id}', [PrestamoController::class, 'eliminarPrestamo'])->name('prestamo.destroy')->middleware('permiso:CU09_DEL');
+
     // ── CU-10 Gestionar estado de herramientas ─────────────────────────────────────
     Route::put('/prestamos/{id}/devolucion', [HerramientaController::class, 'actualizarEstado'])->name('herramienta.devolucion')->middleware('permiso:CU10_MOD');
     });

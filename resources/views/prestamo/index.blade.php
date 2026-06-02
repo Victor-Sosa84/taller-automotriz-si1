@@ -83,14 +83,29 @@
                         <td>{{ $p->fecha_devolucion ? $p->fecha_devolucion->format('d/m/Y H:i') : '—' }}</td>
                         <td>
                             @if($d->estado_retorno)
-                                <span style="color:var(--success);">{{ $d->estado_retorno }}</span>
+                                @php
+                                    $colorRetorno = match($d->estado_retorno) {
+                                        'Bueno'   => 'var(--success)',
+                                        'Regular' => 'var(--accent)',
+                                        'Malo'    => 'var(--danger)',
+                                        default   => 'var(--muted)',
+                                    };
+                                @endphp
+                                <span style="color:{{ $colorRetorno }};">{{ $d->estado_retorno }}</span>
                             @else
                                 <span style="color:var(--accent);">Pendiente</span>
                             @endif
                         </td>
-                        <td style="text-align:center;">
+                        <td style="text-align:center; white-space:nowrap;">
                             @if(!$p->fecha_devolucion && auth()->user()->puede('CU10_MOD'))
                             <button onclick="abrirDevolucion({{ $p->id }})" class="btn btn-sm btn-primary">Registrar Devolución</button>
+                            @endif
+                            @if(auth()->user()->puede('CU09_DEL'))
+                            <form method="POST" action="{{ route('prestamo.destroy', $p->id) }}" style="display:inline;"
+                                onsubmit="return confirm('¿Eliminar este préstamo?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                            </form>
                             @endif
                         </td>
                     </tr>
@@ -119,14 +134,6 @@
                 <div class="field-group">
                     <label>Estado de Retorno <span class="req">*</span></label>
                     <select id="dev-estado-retorno" name="estado_retorno">
-                        <option value="Bueno">Bueno</option>
-                        <option value="Regular">Regular</option>
-                        <option value="Malo">Malo</option>
-                    </select>
-                </div>
-                <div class="field-group" style="grid-column:1/-1;">
-                    <label>Estado de la Herramienta <span class="req">*</span></label>
-                    <select name="estado">
                         <option value="Bueno">Bueno</option>
                         <option value="Regular">Regular</option>
                         <option value="Malo">Malo</option>

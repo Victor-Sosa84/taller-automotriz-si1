@@ -48,4 +48,20 @@ class PrestamoController extends Controller
 
         return redirect()->route('prestamo.index')->with('success', 'Préstamo registrado correctamente.');
     }
+
+    public function eliminarPrestamo(int $id)
+    {
+        $prestamo = PrestamoHerramienta::with('detalles')->findOrFail($id);
+
+        foreach ($prestamo->detalles as $detalle) {
+            Herramienta::where('nro', $detalle->nro_herramienta)
+                ->update(['disponible' => true]);
+        }
+
+        $prestamo->delete();
+
+        Bitacora::registrar('Eliminar Préstamo', "Préstamo #{$id} eliminado.");
+
+        return redirect()->route('prestamo.index')->with('success', 'Préstamo eliminado correctamente.');
+    }
 }

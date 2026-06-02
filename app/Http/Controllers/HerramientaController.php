@@ -13,7 +13,6 @@ class HerramientaController extends Controller
     {
         $request->validate([
             'estado_retorno'   => ['required', 'string', 'max:50'],
-            'estado'           => ['required', 'string', 'max:50'],
             'fecha_devolucion' => ['required', 'date'],
         ]);
 
@@ -30,7 +29,7 @@ class HerramientaController extends Controller
 
             Herramienta::where('nro', $detalle->nro_herramienta)->update([
                 'disponible' => true,
-                'estado'     => $request->estado,
+                'estado'     => $request->estado_retorno,
             ]);
         }
 
