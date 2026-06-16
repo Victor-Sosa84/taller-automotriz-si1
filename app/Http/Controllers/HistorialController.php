@@ -9,19 +9,21 @@ use Illuminate\Http\Request;
 class HistorialController extends Controller
 {
     // ── INDEX — búsqueda de vehículo ─────────────────────────────
-    // El usuario busca por placa para ver el historial
     public function index(Request $request)
     {
-        $autos = collect();
         $search = $request->get('search');
 
+        $query = Auto::query();
+        
         if ($search) {
-            $autos = Auto::where('placa', 'like', "%{$search}%")
-                         ->orWhere('marca', 'like', "%{$search}%")
-                         ->orWhere('modelo', 'like', "%{$search}%")
-                         ->paginate(10)
-                         ->withQueryString();
+            $query->where(function($q) use ($search) {
+                $q->where('placa',  'like', "%{$search}%")
+                ->orWhere('marca',  'like', "%{$search}%")
+                ->orWhere('modelo', 'like', "%{$search}%");
+            });
         }
+
+        $autos = $query->orderBy('placa')->paginate(15)->withQueryString();
 
         return view('historial.index', compact('autos', 'search'));
     }

@@ -8,7 +8,7 @@
         Historial de Mantenimiento
     </h2>
     <p style="color:var(--muted); font-size:.85rem; margin-top:.2rem;">
-        Busca un vehículo por placa, marca o modelo para ver su historial completo.
+        Consulta el historial completo de mantenimiento de cada vehículo.
     </p>
 </div>
 
@@ -27,66 +27,50 @@
     @endif
 </form>
 
-@if($search)
-    {{-- Resultados --}}
-    @if($autos->count() > 0)
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Placa</th>
-                        <th>Marca</th>
-                        <th>Modelo</th>
-                        <th>Año</th>
-                        <th>Color</th>
-                        <th>Tipo</th>
-                        <th style="text-align:center;">Ver historial</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($autos as $auto)
-                    <tr>
-                        <td style="font-family:monospace; font-weight:700; color:var(--accent);">
-                            {{ $auto->placa }}
-                        </td>
-                        <td>{{ $auto->marca ?? '—' }}</td>
-                        <td>{{ $auto->modelo ?? '—' }}</td>
-                        <td class="td-muted">{{ $auto->anio ?? '—' }}</td>
-                        <td class="td-muted">{{ $auto->color ?? '—' }}</td>
-                        <td class="td-muted">{{ $auto->tipo ?? '—' }}</td>
-                        <td style="text-align:center;">
-                            <a href="{{ route('historial.show', $auto->placa) }}"
-                               class="btn btn-sm btn-primary">Ver historial →</a>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-            <div class="table-footer">
-                <span>{{ $autos->total() }} resultado(s)</span>
-                <div>{{ $autos->links() }}</div>
-            </div>
+{{-- Resultados --}}
+@if($autos->count() > 0)
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Placa</th>
+                    <th>Marca</th>
+                    <th>Modelo</th>
+                    <th>Año</th>
+                    <th>Color</th>
+                    <th>Tipo</th>
+                    <th style="text-align:center;">Ver historial</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($autos as $auto)
+                <tr>
+                    <td style="font-family:monospace; font-weight:700; color:var(--accent);">
+                        {{ $auto->placa }}
+                    </td>
+                    <td>{{ $auto->marca ?? '—' }}</td>
+                    <td>{{ $auto->modelo ?? '—' }}</td>
+                    <td class="td-muted">{{ $auto->anio ?? '—' }}</td>
+                    <td class="td-muted">{{ $auto->color ?? '—' }}</td>
+                    <td class="td-muted">{{ $auto->tipo ?? '—' }}</td>
+                    <td style="text-align:center;">
+                        <a href="{{ route('historial.show', $auto->placa) }}"
+                           class="btn btn-sm btn-primary">Ver historial →</a>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+        <div class="table-footer">
+            <span>{{ $autos->total() }} resultado(s)</span>
+            <div>{{ $autos->links() }}</div>
         </div>
-    @else
-        <div class="card">
-            <div style="padding:2.5rem; text-align:center; color:var(--muted);">
-                <div style="font-size:2rem; margin-bottom:.75rem; opacity:.4;">🚗</div>
-                <p>No se encontró ningún vehículo con «{{ $search }}».</p>
-                <p style="font-size:.82rem; margin-top:.4rem;">
-                    Verifica la placa o
-                    <a href="{{ route('autos.create') }}" style="color:var(--accent); text-decoration:none;">
-                        registra el vehículo
-                    </a>.
-                </p>
-            </div>
-        </div>
-    @endif
+    </div>
 @else
-    {{-- Estado vacío inicial --}}
     <div class="card">
-        <div style="padding:3rem; text-align:center; color:var(--muted);">
-            <div style="font-size:2.5rem; margin-bottom:1rem; opacity:.3;">🔍</div>
-            <p style="font-size:1rem;">Ingresa la placa o datos del vehículo para comenzar.</p>
+        <div style="padding:2.5rem; text-align:center; color:var(--muted);">
+            <div style="font-size:2rem; margin-bottom:.75rem; opacity:.4;">🚗</div>
+            <p>{{ $search ? 'No se encontró ningún vehículo con «'.$search.'».' : 'No hay vehículos registrados.' }}</p>
         </div>
     </div>
 @endif
