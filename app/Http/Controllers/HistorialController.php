@@ -39,6 +39,7 @@ class HistorialController extends Controller
             'diagnosticos.proforma.ordenTrabajo',
             'diagnosticos.proforma.ordenTrabajo.detallesTrabajo.manoObra',
             'diagnosticos.proforma.ordenTrabajo.detallesRepuesto.repuesto',
+            'ordenesPendientes',
         ])->findOrFail($placa);
 
         return view('historial.show', compact('auto'));

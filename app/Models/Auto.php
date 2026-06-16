@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\OrdenTrabajo;
 use Illuminate\Database\Eloquent\Model;
 
 class Auto extends Model
@@ -44,5 +45,11 @@ class Auto extends Model
     public function tieneDiagnosticos(): bool
     {
         return $this->diagnosticos()->exists();
+    }
+
+    public function ordenesPendientes()
+    {
+        return $this->hasMany(OrdenTrabajo::class, 'placa_auto', 'placa')
+                    ->where('estado', 'Pendiente de Diagnóstico');
     }
 }

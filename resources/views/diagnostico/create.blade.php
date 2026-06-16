@@ -5,7 +5,11 @@
 <div style="max-width:860px;">
     <div style="margin-bottom:1rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
         <div>
-            <a href="{{ route('autos.show', $orden->placa_auto) }}" style="font-size:.8rem; color:var(--muted); text-decoration:none;">← Volver a vehículo</a>
+            @if(isset($from) && $from === 'auto')
+                <a href="{{ route('autos.show', $orden->placa_auto) }}" style="font-size:.8rem; color:var(--muted); text-decoration:none;">← Volver a vehículo</a>
+            @elseif(isset($from) && $from === 'historial')
+                <a href="{{ route('historial.show', $orden->placa_auto) }}" style="font-size:.8rem; color:var(--muted); text-decoration:none;">← Volver a historial</a>
+            @endif
             <div style="display:flex; align-items:center; gap:.75rem; margin-top:.5rem; flex-wrap:wrap;">
                 <h2 style="font-family:'Barlow Condensed',sans-serif; font-size:1.8rem; font-weight:800; margin:0;">Diagnóstico Técnico</h2>
                 <span style="background:var(--accent); color:#000; font-size:.75rem; font-weight:700; padding:.25rem .75rem; border-radius:999px; text-transform:uppercase; letter-spacing:.05em;">

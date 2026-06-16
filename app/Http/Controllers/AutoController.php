@@ -72,6 +72,7 @@ class AutoController extends Controller
             'diagnosticos.persona',
             'diagnosticos.detalles',
             'diagnosticos.proforma.ordenTrabajo',
+            'ordenesPendientes',
         ])->findOrFail($placa);
 
         return view('autos.show', compact('auto'));

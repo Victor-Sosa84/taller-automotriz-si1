@@ -44,15 +44,34 @@
     </div>
     <div class="stat-card">
         <div class="stat-label">Último ingreso</div>
-        <div style="font-size:.95rem; font-weight:600; color:var(--accent); margin-top:.4rem; line-height:1.2;">
-            @if($auto->diagnosticos->isNotEmpty())
-                {{ $auto->diagnosticos->first()->fecha->format('d/m/Y') }}
+        <div style="font-size:1rem; font-weight:600; color:var(--accent); margin-top:.4rem;">
+            @if($auto->ordenesPendientes->isNotEmpty())
+                {{ \Carbon\Carbon::parse($auto->ordenesPendientes->sortByDesc('fecha_inicio')->first()->fecha_inicio)->format('d/m/Y') }}
+            @elseif($auto->diagnosticos->isNotEmpty())
+                {{ $auto->diagnosticos->sortByDesc('fecha')->first()->fecha->format('d/m/Y') }}
             @else
-                —
+                Sin registros
             @endif
         </div>
     </div>
 </div>
+
+{{-- Ingreso pendiente --}}
+@if($auto->ordenesPendientes->isNotEmpty())
+    @foreach($auto->ordenesPendientes as $op)
+    <div style="background:rgba(245,166,35,.08); border:1px solid rgba(245,166,35,.3); border-radius:6px; padding:.9rem 1rem; margin-bottom:1rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.5rem;">
+        <div>
+            <span style="font-weight:700; color:var(--accent);">⚠ Ingreso pendiente de diagnóstico</span>
+            <span class="td-muted" style="margin-left:.75rem;">Orden #{{ $op->nro }} — {{ \Carbon\Carbon::parse($op->fecha_inicio)->format('d/m/Y') }}</span>
+        </div>
+        @if(auth()->user()->puede('CU05_ADD'))
+            <a href="{{ route('diagnostico.create', ['orden_id' => $op->nro, 'from' => 'historial']) }}" class="btn btn-primary btn-sm">
+                Continuar diagnóstico →
+            </a>
+        @endif
+    </div>
+    @endforeach
+@endif
 
 {{-- Timeline de diagnósticos --}}
 @forelse($auto->diagnosticos as $diag)
@@ -254,12 +273,14 @@
 </div>
 
 @empty
+@if($auto->ordenesPendientes->isEmpty())
 <div class="card">
     <div style="padding:2.5rem; text-align:center; color:var(--muted);">
         <div style="font-size:2rem; opacity:.3; margin-bottom:.75rem;">📋</div>
         <p>Este vehículo aún no tiene diagnósticos registrados.</p>
     </div>
 </div>
+@endif
 @endforelse
 
 @endsection

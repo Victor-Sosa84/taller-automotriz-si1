@@ -13,7 +13,8 @@ class DiagnosticoController extends Controller
     {
         $ordenId = $request->query('orden_id');
         $orden   = OrdenTrabajo::with('auto')->findOrFail($ordenId);
-        return view('diagnostico.create', compact('orden'));
+        $from    = $request->query('from'); // 'auto', 'historial', o null
+        return view('diagnostico.create', compact('orden', 'from'));
     }
 
     public function store(Request $request)
