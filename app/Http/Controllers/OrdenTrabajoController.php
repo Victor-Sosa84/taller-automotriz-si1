@@ -52,7 +52,9 @@ class OrdenTrabajoController extends Controller
 
     public function obtenerOrdenes()
     {
-        $ordenes = OrdenTrabajo::with(['proforma', 'auto'])->get();
+        $ordenes = OrdenTrabajo::with(['proforma', 'auto'])
+            ->whereNotIn('estado', ['Pendiente de Diagnóstico', 'Diagnóstico Finalizado'])
+            ->get();
         return view('orden_trabajo.index', compact('ordenes'));
     }
 

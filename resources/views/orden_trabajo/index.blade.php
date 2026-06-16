@@ -30,8 +30,6 @@
                     <td>
                         @php
                             $badgeStyle = match($orden->estado) {
-                                'Pendiente de Diagnóstico' => 'background:rgba(245,166,35,.12);color:var(--accent);border:1px solid rgba(245,166,35,.25);',
-                                'Diagnóstico Finalizado'   => 'background:rgba(52,152,219,.12);color:#5dade2;border:1px solid rgba(52,152,219,.25);',
                                 'En Proceso'               => 'background:rgba(52,152,219,.12);color:#5dade2;border:1px solid rgba(52,152,219,.25);',
                                 'Finalizada'               => 'background:rgba(46,204,113,.12);color:var(--success);border:1px solid rgba(46,204,113,.25);',
                                 'Anulada'                  => 'background:rgba(231,76,60,.12);color:var(--danger);border:1px solid rgba(231,76,60,.25);',
