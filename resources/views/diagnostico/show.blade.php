@@ -6,7 +6,11 @@
     {{-- Header --}}
     <div style="margin-bottom:1.5rem; display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
         <div>
-            <a href="{{ route('autos.show', $diagnostico->placa_auto) }}" style="font-size:.8rem; color:var(--muted); text-decoration:none;">← Volver a vehículo</a>
+            @if(isset($from) && $from === 'auto')
+                <a href="{{ route('autos.show', $diagnostico->placa_auto) }}" style="font-size:.8rem; color:var(--muted); text-decoration:none;">← Volver a vehículo</a>
+            @elseif(isset($from) && $from === 'historial')
+                <a href="{{ route('historial.show', $diagnostico->placa_auto) }}" style="font-size:.8rem; color:var(--muted); text-decoration:none;">← Volver a historial</a>
+            @endif
             <h2 style="font-family:'Barlow Condensed',sans-serif; font-size:1.8rem; font-weight:800; margin-top:.5rem;">
                 Diagnóstico #{{ $diagnostico->id }}
             </h2>

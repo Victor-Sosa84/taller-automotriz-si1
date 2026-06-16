@@ -61,6 +61,7 @@ class DiagnosticoController extends Controller
     public function show(Diagnostico $diagnostico)
     {
         $diagnostico->load('auto', 'persona', 'detalles', 'proforma.repuestos.repuesto', 'proforma.servicios.manoObra');
-        return view('diagnostico.show', compact('diagnostico'));
+        $from = request()->query('from');
+        return view('diagnostico.show', compact('diagnostico', 'from'));
     }
 }

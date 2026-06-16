@@ -90,7 +90,7 @@
             <div style="font-size:.82rem; color:var(--muted);">
                 Registrado por: <strong style="color:var(--text);">{{ $diag->persona?->nombre ?? '—' }}</strong>
             </div>
-            <a href="{{ route('diagnostico.show', $diag->id) }}" class="btn btn-ghost btn-sm">Ver →</a>
+            <a href="{{ route('diagnostico.show', $diag->id) }}?from=historial" class="btn btn-ghost btn-sm">Ver →</a>
         </div>
     </div>
 
