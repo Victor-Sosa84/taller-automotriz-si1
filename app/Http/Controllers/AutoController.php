@@ -27,9 +27,10 @@ class AutoController extends Controller
         return view('autos.index', compact('autos'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return view('autos.create');
+        $redirect = $request->query('redirect'); // 'ingreso' o null
+        return view('autos.create', compact('redirect'));
     }
 
     public function store(Request $request)
@@ -54,8 +55,15 @@ class AutoController extends Controller
 
         Bitacora::registrar('Registro de Vehículo', "Placa: " . strtoupper($request->placa));
         
+        $placa = strtoupper($request->placa);
+
+        if ($request->input('redirect') === 'ingreso') {
+            return redirect()->route('orden-trabajo.create', ['placa' => $placa])
+                ->with('success', "Vehículo «{$placa}» registrado. Ahora completá el ingreso.");
+        }
+
         return redirect()->route('autos.index')
-                        ->with('success', "Vehículo «" . strtoupper($request->placa) . "» registrado correctamente.");
+            ->with('success', "Vehículo «{$placa}» registrado correctamente.");
     }
 
     public function show(string $placa)

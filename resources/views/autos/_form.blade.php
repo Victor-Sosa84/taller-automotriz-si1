@@ -14,6 +14,7 @@
 <form action="{{ $action }}" method="POST" novalidate>
     @csrf
     @if($method !== 'POST') @method($method) @endif
+    <input type="hidden" name="redirect" value="{{ $redirect ?? '' }}">
 
     <div class="form-card">
 
@@ -101,7 +102,11 @@
         </div>
 
         <div class="form-actions">
-            <a href="{{ route('autos.index') }}" class="btn btn-ghost">← Cancelar</a>
+            @if(($redirect ?? '') === 'ingreso')
+                <a href="{{ route('orden-trabajo.create') }}" class="btn btn-ghost">← Cancelar</a>
+            @else
+                <a href="{{ route('autos.index') }}" class="btn btn-ghost">← Cancelar</a>
+            @endif
             <button type="submit" class="btn btn-primary">
                 {{ $auto ? '💾 Guardar cambios' : '＋ Registrar vehículo' }}
             </button>

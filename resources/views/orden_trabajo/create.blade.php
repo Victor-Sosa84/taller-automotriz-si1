@@ -5,7 +5,13 @@
 <div style="max-width:760px;">
     <div style="margin-bottom:1.5rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
         <div>
-            <a href="{{ route('autos.index') }}" style="font-size:.8rem; color:var(--muted); text-decoration:none;">← Volver a vehículos</a>
+            @if($auto)
+                @if(($redirect ?? '') === 'ingreso')
+                    <a href="{{ route('autos.show', $auto->placa) }}" style="font-size:.8rem; color:var(--muted); text-decoration:none;">← Volver a vehículo</a>
+                @else
+                    <a href="{{ route('autos.index') }}" style="font-size:.8rem; color:var(--muted); text-decoration:none;">← Volver a vehículos</a>
+                @endif
+            @endif
             <h2 style="font-family:'Barlow Condensed',sans-serif; font-size:1.8rem; font-weight:800; margin-top:.5rem;">Registro de Unidad</h2>
             <p style="color:var(--muted); font-size:.95rem; margin-top:.25rem;">Complete los datos de ingreso para continuar con el diagnóstico.</p>
         </div>
@@ -24,6 +30,7 @@
 
     <form action="{{ route('orden-trabajo.store') }}" method="POST" class="form-card">
         @csrf
+        <input type="hidden" name="redirect" value="{{ $redirect ?? '' }}">
 
         <div class="form-grid">
             <div class="field-group">
@@ -40,8 +47,26 @@
                     <span style="font-size:.7rem; color:var(--muted); margin-top:.2rem;">
                         Formato Bolivia: 3-4 dígitos seguidos de 2-3 letras (ej. 3046FIJ, 173YYY)
                     </span>
+                    <a href="{{ route('autos.create', ['redirect' => 'ingreso']) }}" class="btn btn-ghost btn-sm" style="margin-top:.5rem; display:inline-block;">
+                        ＋ Registrar nuevo vehículo
+                    </a>
                 @endif
             </div>
+
+            <div class="field-group">
+                <label>Inventario</label>
+                <div style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:.5rem .75rem; margin-top:.25rem;">
+                    @foreach(['Llanta Auxilio','Gato','Herramientas','Radio'] as $item)
+                        <label style="display:flex; align-items:center; gap:.6rem; font-size:.9rem; color:var(--text); cursor:pointer; padding:.4rem .6rem; border-radius:.4rem; background:var(--surface-2, rgba(255,255,255,.05));">
+                            <input type="checkbox" name="inventario[]" value="{{ $item }}"
+                                {{ in_array($item, old('inventario', [])) ? 'checked' : '' }}
+                                style="width:1rem; height:1rem; accent-color:var(--accent); cursor:pointer;">
+                            {{ $item }}
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+
             <div class="field-group">
                 <label for="kilometraje">Kilometraje <span class="req">*</span></label>
                 <input id="kilometraje" name="kilometraje" type="number" min="0" max="999999"
@@ -61,19 +86,7 @@
                 </select>
             </div>
 
-            <div class="field-group">
-                <label>Inventario</label>
-                <div style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:.5rem .75rem; margin-top:.25rem;">
-                    @foreach(['Llanta Auxilio','Gato','Herramientas','Radio'] as $item)
-                        <label style="display:flex; align-items:center; gap:.6rem; font-size:.9rem; color:var(--text); cursor:pointer; padding:.4rem .6rem; border-radius:.4rem; background:var(--surface-2, rgba(255,255,255,.05));">
-                            <input type="checkbox" name="inventario[]" value="{{ $item }}"
-                                {{ in_array($item, old('inventario', [])) ? 'checked' : '' }}
-                                style="width:1rem; height:1rem; accent-color:var(--accent); cursor:pointer;">
-                            {{ $item }}
-                        </label>
-                    @endforeach
-                </div>
-            </div>
+            
 
             <div class="field-group" style="grid-column:1 / -1;">
                 <label for="observaciones_adicionales">Observaciones Adicionales</label>
