@@ -164,16 +164,22 @@ function crearFilaRepuesto(idx) {
     div.innerHTML = `
         <select name="repuestos[${idx}][id_repuesto]" style="width:100%; box-sizing:border-box; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); padding:.6rem .8rem;">
             <option value="">Seleccionar repuesto...</option>
-            ${REPUESTOS.map(r => `<option value="${r.id}">${r.nombre}${r.marca ? ' — '+r.marca : ''}</option>`).join('')}
+            ${REPUESTOS.map(r => `<option value="${r.id}" data-precio="${r.precio_referencial ?? ''}">${r.nombre}${r.marca ? ' — '+r.marca : ''}</option>`).join('')}
         </select>
         <input type="number" name="repuestos[${idx}][cantidad]" class="r-cantidad" min="1" value="1"
             placeholder="Cant." style="width:100%; box-sizing:border-box; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); padding:.6rem .8rem;">
-        <input type="number" name="repuestos[${idx}][precio]" class="r-precio" min="0" step="0.01" value="0"
+        <input type="number" name="repuestos[${idx}][precio]" class="r-precio" min="0" step="0.5" value=""
             placeholder="Precio Bs" style="width:100%; box-sizing:border-box; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); padding:.6rem .8rem;">
-        <input type="number" name="repuestos[${idx}][descuento]" class="r-descuento" min="0" max="100" step="0.01" value="0"
+        <input type="number" name="repuestos[${idx}][descuento]" class="r-descuento" min="0" max="100" step="0.5" value=""
             placeholder="Desc. %" style="width:100%; box-sizing:border-box; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); padding:.6rem .8rem;">
         <button type="button" class="btn btn-danger btn-sm quitar-repuesto">✕</button>
     `;
+
+    div.querySelector('select').addEventListener('change', function() {
+        const precio = this.options[this.selectedIndex].dataset.precio;
+        div.querySelector('.r-precio').value = precio || '';
+        actualizarTotal();
+    });
     div.querySelectorAll('input').forEach(i => i.addEventListener('input', actualizarTotal));
     div.querySelector('.quitar-repuesto').addEventListener('click', () => {
         div.remove();
@@ -190,14 +196,20 @@ function crearFilaServicio(idx) {
     div.innerHTML = `
         <select name="servicios[${idx}][id_servicio]" style="width:100%; box-sizing:border-box; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); padding:.6rem .8rem;">
             <option value="">Seleccionar servicio...</option>
-            ${SERVICIOS.map(s => `<option value="${s.id}">${s.descripcion}</option>`).join('')}
+            ${SERVICIOS.map(s => `<option value="${s.id}" data-costo="${s.costo_referencial ?? ''}">${s.descripcion}</option>`).join('')}
         </select>
         <input type="number" name="servicios[${idx}][cantidad]" class="s-cantidad" min="1" value="1"
             placeholder="Cant." style="width:100%; box-sizing:border-box; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); padding:.6rem .8rem;">
-        <input type="number" name="servicios[${idx}][costo]" class="s-costo" min="0" step="0.01" value="0"
+        <input type="number" name="servicios[${idx}][costo]" class="s-costo" min="0" step="0.5" value=""
             placeholder="Costo Bs" style="width:100%; box-sizing:border-box; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); padding:.6rem .8rem;">
         <button type="button" class="btn btn-danger btn-sm quitar-servicio">✕</button>
     `;
+
+    div.querySelector('select').addEventListener('change', function() {
+        const costo = this.options[this.selectedIndex].dataset.costo;
+        div.querySelector('.s-costo').value = costo || '';
+        actualizarTotal();
+    });
     div.querySelectorAll('input').forEach(i => i.addEventListener('input', actualizarTotal));
     div.querySelector('.quitar-servicio').addEventListener('click', () => {
         div.remove();
