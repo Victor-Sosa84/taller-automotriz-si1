@@ -177,7 +177,7 @@
         @endif
         @if(auth()->user()->puede('CU14_BUS'))
         <a href="{{ route('orden_trabajo.index') }}"
-            class="nav-item {{ request()->routeIs('ordenes*') ? 'active' : '' }}"
+            class="nav-item {{ request()->routeIs('orden_trabajo.*', 'asignacion.*', 'detalle_ot.*') ? 'active' : '' }}"
             onclick="cerrarSidebar()">
             <span class="nav-icon">🔧</span> Órdenes de Trabajo
         </a>
