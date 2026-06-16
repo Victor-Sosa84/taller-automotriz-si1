@@ -122,7 +122,7 @@
         </a>
         @endif
         @if(auth()->user()->puede('CU06_BUS'))
-        <a href="{{ route('proforma.index') }}" class="nav-item {{ request()->routeIs('proforma.index') ? 'active' : '' }}" onclick="cerrarSidebar()">
+        <a href="{{ route('proforma.index') }}" class="nav-item {{ request()->routeIs('proforma.*') ? 'active' : '' }}" onclick="cerrarSidebar()">
             <span class="nav-icon">📄</span> Proformas
         </a>
         @endif

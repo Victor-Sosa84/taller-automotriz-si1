@@ -35,7 +35,7 @@
                         pattern="[0-9]*"
                         maxlength="8"
                         required
-                        value="{{ old('ci_cliente') }}"
+                        value="{{ old('ci_cliente', request('ci_cliente')) }}"
                         oninput="buscarClientePorCI(this.value)"
                         autocomplete="off"
                         style="width:100%; box-sizing:border-box;">
@@ -54,6 +54,10 @@
                     border-radius:4px; padding:.5rem .75rem; font-size:.78rem; color:var(--danger);">
                     ✗ CI no encontrado — el cliente debe estar registrado.
                 </div>
+                <a href="{{ route('clientes.create', ['redirect' => 'proforma', 'diagnostico_id' => $diagnostico->id]) }}" 
+                class="btn btn-ghost btn-sm" style="margin-top:.5rem; display:inline-block;">
+                    ＋ Registrar nuevo cliente
+                </a>
             </div>
             <div class="field-group">
                 <label for="plazo">Plazo de validez</label>
@@ -62,7 +66,7 @@
                     min="{{ now()->toDateString() }}"
                     style="width:100%; box-sizing:border-box;">
                 <span style="font-size:.7rem; color:var(--muted); margin-top:.2rem;">
-                    Por defecto 5 días — puede ampliarse
+                    Por defecto 5 días — puede ampliarse o adelantarse
                 </span>
             </div>
         </div>

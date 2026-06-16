@@ -25,9 +25,11 @@ class ClienteController extends Controller
         return view('clientes.index', compact('clientes'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return view('clientes.create');
+        $redirect      = $request->query('redirect');
+        $diagnosticoId = $request->query('diagnostico_id');
+        return view('clientes.create', compact('redirect', 'diagnosticoId'));
     }
 
     public function store(Request $request)
@@ -72,6 +74,13 @@ class ClienteController extends Controller
         }
 
         Bitacora::registrar('Registro de Cliente', "CI: {$request->ci} — {$request->nombre}");
+
+        if ($request->input('redirect') === 'proforma' && $request->input('diagnostico_id')) {
+            return redirect()->route('proforma.create', [
+                'diagnostico_id' => $request->input('diagnostico_id'),
+                'ci_cliente'     => $request->ci,
+            ])->with('success', $mensaje);
+        }
 
         return redirect()->route('clientes.index')->with('success', $mensaje);
     }

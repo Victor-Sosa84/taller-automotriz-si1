@@ -14,6 +14,8 @@
 <form action="{{ $action }}" method="POST" novalidate>
     @csrf
     @if($method !== 'POST') @method($method) @endif
+    <input type="hidden" name="redirect" value="{{ $redirect ?? '' }}">
+    <input type="hidden" name="diagnostico_id" value="{{ $diagnosticoId ?? '' }}">
 
     <div class="form-card">
 
@@ -92,7 +94,11 @@
         </div>
 
         <div class="form-actions">
-            <a href="{{ route('clientes.index') }}" class="btn btn-ghost">← Cancelar</a>
+            @if(($redirect ?? '') === 'proforma')
+                <a href="{{ route('proforma.create', ['diagnostico_id' => $diagnosticoId ?? '']) }}" class="btn btn-ghost">← Cancelar</a>
+            @else
+                <a href="{{ route('clientes.index') }}" class="btn btn-ghost">← Cancelar</a>
+            @endif
             <button type="submit" class="btn btn-primary">
                 {{ $cliente ? '💾 Guardar cambios' : '＋ Registrar cliente' }}
             </button>
