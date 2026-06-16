@@ -24,8 +24,8 @@ class CatalogoController extends Controller
     // Repuesto
     public function storeRepuesto(Request $request)
     {
-        $request->validate(['nombre' => 'required|string|max:100', 'marca' => 'nullable|string|max:50', 'estado' => 'nullable|string|max:50']);
-        Repuesto::create($request->only('nombre', 'marca', 'estado'));
+        $request->validate(['nombre' => 'required|string|max:100', 'marca' => 'nullable|string|max:50', 'estado' => 'nullable|string|max:50', 'precio_referencial' => 'nullable|numeric|min:0']);
+        Repuesto::create($request->only('nombre', 'marca', 'estado', 'precio_referencial'));
         Bitacora::registrar('Crear Repuesto', "Repuesto: {$request->nombre}");
         return back()->with('success', 'Repuesto agregado.');
     }
@@ -33,7 +33,7 @@ class CatalogoController extends Controller
     public function updateRepuesto(Request $request, int $id)
     {
         $request->validate(['nombre' => 'required|string|max:100', 'marca' => 'nullable|string|max:50', 'estado' => 'nullable|string|max:50']);
-        Repuesto::findOrFail($id)->update($request->only('nombre', 'marca', 'estado'));
+        Repuesto::findOrFail($id)->update($request->only('nombre', 'marca', 'estado', 'precio_referencial'));
         Bitacora::registrar('Editar Repuesto', "Repuesto #{$id}");
         return back()->with('success', 'Repuesto actualizado.');
     }
@@ -48,8 +48,8 @@ class CatalogoController extends Controller
     // Mano de Obra
     public function storeManoObra(Request $request)
     {
-        $request->validate(['descripcion' => 'required|string|max:255']);
-        ManoObra::create($request->only('descripcion'));
+        $request->validate(['descripcion' => 'required|string|max:255', 'costo_referencial' => 'nullable|numeric|min:0']);
+        ManoObra::create($request->only('descripcion', 'costo_referencial'));
         Bitacora::registrar('Crear Mano de Obra', "MO: {$request->descripcion}");
         return back()->with('success', 'Mano de obra agregada.');
     }
@@ -57,7 +57,7 @@ class CatalogoController extends Controller
     public function updateManoObra(Request $request, int $id)
     {
         $request->validate(['descripcion' => 'required|string|max:255']);
-        ManoObra::findOrFail($id)->update($request->only('descripcion'));
+        ManoObra::findOrFail($id)->update($request->only('descripcion', 'costo_referencial'));
         Bitacora::registrar('Editar Mano de Obra', "MO #{$id}");
         return back()->with('success', 'Mano de obra actualizada.');
     }

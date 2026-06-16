@@ -8,5 +8,5 @@ class Repuesto extends Model
 {
     protected $table    = 'repuesto';
     public    $timestamps = false;
-    protected $fillable = ['nombre', 'estado', 'marca'];
+    protected $fillable = ['nombre', 'estado', 'marca', 'precio_referencial'];
 }

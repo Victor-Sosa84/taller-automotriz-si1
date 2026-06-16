@@ -13,6 +13,7 @@ return new class extends Migration
             $table->string('nombre', 100);
             $table->string('estado', 50)->nullable();
             $table->string('marca', 50)->nullable();
+            $table->decimal('precio_referencial', 10, 2)->nullable();
         });
     }
 

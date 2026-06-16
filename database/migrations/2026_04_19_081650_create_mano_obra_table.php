@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('mano_obra', function (Blueprint $table) {
             $table->integer('id')->autoIncrement();
             $table->string('descripcion', 255);
+            $table->decimal('costo_referencial', 10, 2)->nullable();
         });
     }
 

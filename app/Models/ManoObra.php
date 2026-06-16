@@ -7,5 +7,5 @@ class ManoObra extends Model
 {
     protected $table    = 'mano_obra';
     public    $timestamps = false;
-    protected $fillable = ['descripcion'];
+    protected $fillable = ['descripcion', 'costo_referencial'];
 }

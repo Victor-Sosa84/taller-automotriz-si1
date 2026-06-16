@@ -8,10 +8,6 @@
         <p style="color:var(--muted); font-size:.95rem; margin-top:.25rem;">Gestión de repuestos, mano de obra, herramientas, tipos y marcas del sistema.</p>
     </div>
 
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-
     {{-- REPUESTOS --}}
     <div class="table-wrap" style="margin-bottom:2rem;">
         <div style="padding:.75rem 1rem; background:var(--surface2); border-bottom:1px solid var(--border);">
@@ -24,6 +20,7 @@
                     <th>Nombre</th>
                     <th>Marca</th>
                     <th>Estado</th>
+                    <th>Precio Ref.</th>
                     <th style="text-align:center;">Acciones</th>
                 </tr>
             </thead>
@@ -34,8 +31,9 @@
                     <td id="rep-nombre-{{ $r->id }}">{{ $r->nombre }}</td>
                     <td id="rep-marca-{{ $r->id }}">{{ $r->marca ?? '—' }}</td>
                     <td id="rep-estado-{{ $r->id }}">{{ $r->estado ?? '—' }}</td>
+                    <td id="rep-precio-{{ $r->id }}">{{ $r->precio_referencial ? 'Bs '.number_format($r->precio_referencial, 2) : '—' }}</td>
                     <td style="text-align:center; white-space:nowrap;">
-                        <button onclick="editarRepuesto({{ $r->id }}, '{{ $r->nombre }}', '{{ $r->marca }}', '{{ $r->estado }}')"
+                        <button onclick="editarRepuesto({{ $r->id }}, '{{ $r->nombre }}', '{{ $r->marca }}', '{{ $r->estado }}', '{{ $r->precio_referencial }}')"
                             class="btn btn-sm btn-ghost">Editar</button>
                         <form method="POST" action="{{ route('catalogo.repuesto.destroy', $r->id) }}" style="display:inline;"
                             onsubmit="return confirm('¿Eliminar este repuesto?')">
@@ -45,7 +43,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="5" style="text-align:center; color:var(--muted); padding:1.5rem;">Sin repuestos registrados.</td></tr>
+                <tr><td colspan="6" style="text-align:center; color:var(--muted); padding:1.5rem;">Sin repuestos registrados.</td></tr>
                 @endforelse
                 {{-- Fila formulario agregar --}}
                 <tr style="background:var(--surface2);">
@@ -60,6 +58,7 @@
                                 <option value="Agotado">Agotado</option>
                             </select>
                         </td>
+                        <td><input name="precio_referencial" type="number" step="0.01" min="0" placeholder="Precio Bs" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); padding:.4rem .6rem; font-size:.85rem;" /></td>
                         <td style="text-align:center;"><button type="submit" class="btn btn-sm btn-primary">Agregar</button></td>
                     </form>
                 </tr>
@@ -77,6 +76,7 @@
                 <tr>
                     <th>#</th>
                     <th>Descripción</th>
+                    <th>Costo Ref.</th>
                     <th style="text-align:center;">Acciones</th>
                 </tr>
             </thead>
@@ -85,8 +85,9 @@
                 <tr style="vertical-align:middle;">
                     <td class="td-muted">{{ $s->id }}</td>
                     <td>{{ $s->descripcion }}</td>
+                    <td>{{ $s->costo_referencial ? 'Bs '.number_format($s->costo_referencial, 2) : '—' }}</td>
                     <td style="text-align:center; white-space:nowrap;">
-                        <button onclick="editarMO({{ $s->id }}, '{{ $s->descripcion }}')"
+                        <button onclick="editarMO({{ $s->id }}, '{{ $s->descripcion }}', '{{ $s->costo_referencial }}')"
                             class="btn btn-sm btn-ghost">Editar</button>
                         <form method="POST" action="{{ route('catalogo.mo.destroy', $s->id) }}" style="display:inline;"
                             onsubmit="return confirm('¿Eliminar este servicio?')">
@@ -96,13 +97,14 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="3" style="text-align:center; color:var(--muted); padding:1.5rem;">Sin servicios registrados.</td></tr>
+                <tr><td colspan="4" style="text-align:center; color:var(--muted); padding:1.5rem;">Sin servicios registrados.</td></tr>
                 @endforelse
                 <tr style="background:var(--surface2);">
                     <form method="POST" action="{{ route('catalogo.mo.store') }}" style="display:contents;">
                         @csrf
                         <td class="td-muted">+</td>
                         <td><input name="descripcion" type="text" placeholder="Descripción del servicio" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); padding:.4rem .6rem; font-size:.85rem;" required /></td>
+                        <td><input name="costo_referencial" type="number" step="0.01" min="0" placeholder="Costo Bs" style="width:100%; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); color:var(--text); padding:.4rem .6rem; font-size:.85rem;" /></td>
                         <td style="text-align:center;"><button type="submit" class="btn btn-sm btn-primary">Agregar</button></td>
                     </form>
                 </tr>
@@ -294,6 +296,10 @@
                         <option value="Agotado">Agotado</option>
                     </select>
                 </div>
+                <div class="field-group">
+                    <label>Precio referencial (Bs)</label>
+                    <input id="edit-rep-precio" name="precio_referencial" type="number" step="0.01" min="0" />
+                </div>
             </div>
             <div style="display:flex; gap:.75rem; justify-content:flex-end; margin-top:1.25rem;">
                 <button type="button" onclick="cerrarModal('modal-rep')" class="btn btn-ghost" style="color:var(--muted);">Cancelar</button>
@@ -312,6 +318,10 @@
             <div class="field-group">
                 <label>Descripción</label>
                 <input id="edit-mo-desc" name="descripcion" type="text" required />
+            </div>
+            <div class="field-group">
+                <label>Costo referencial (Bs)</label>
+                <input id="edit-mo-costo" name="costo_referencial" type="number" step="0.01" min="0" />
             </div>
             <div style="display:flex; gap:.75rem; justify-content:flex-end; margin-top:1.25rem;">
                 <button type="button" onclick="cerrarModal('modal-mo')" class="btn btn-ghost" style="color:var(--muted);">Cancelar</button>
@@ -405,16 +415,18 @@
 
 @push('scripts')
 <script>
-function editarRepuesto(id, nombre, marca, estado) {
+function editarRepuesto(id, nombre, marca, estado, precio) {
     document.getElementById('form-rep').action = `/catalogos/repuestos/${id}`;
     document.getElementById('edit-rep-nombre').value = nombre;
     document.getElementById('edit-rep-marca').value = marca !== 'null' ? marca : '';
     document.getElementById('edit-rep-estado').value = estado !== 'null' ? estado : 'Disponible';
+    document.getElementById('edit-rep-precio').value = precio !== 'null' ? precio : '';
     document.getElementById('modal-rep').style.display = 'flex';
 }
-function editarMO(id, desc) {
+function editarMO(id, desc, costo) {
     document.getElementById('form-mo').action = `/catalogos/mano-obra/${id}`;
     document.getElementById('edit-mo-desc').value = desc;
+    document.getElementById('edit-mo-costo').value = costo !== 'null' ? costo : '';
     document.getElementById('modal-mo').style.display = 'flex';
 }
 function editarHerramienta(nro, desc, estado, idTipo, idMarca) {
