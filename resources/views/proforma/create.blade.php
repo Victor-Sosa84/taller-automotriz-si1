@@ -56,9 +56,14 @@
                 </div>
             </div>
             <div class="field-group">
-                <label for="plazo">Plazo estimado</label>
-                <input type="date" id="plazo" name="plazo" value="{{ old('plazo') }}"
+                <label for="plazo">Plazo de validez</label>
+                <input type="date" id="plazo" name="plazo" 
+                    value="{{ old('plazo', now()->addDays(5)->toDateString()) }}"
+                    min="{{ now()->toDateString() }}"
                     style="width:100%; box-sizing:border-box;">
+                <span style="font-size:.7rem; color:var(--muted); margin-top:.2rem;">
+                    Por defecto 5 días — puede ampliarse
+                </span>
             </div>
         </div>
 

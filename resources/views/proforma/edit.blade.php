@@ -23,9 +23,10 @@
                     style="width:100%; box-sizing:border-box; opacity:.6;">
             </div>
             <div class="field-group">
-                <label for="plazo">Plazo estimado</label>
+                <label for="plazo">Plazo de validez</label>
                 <input type="date" id="plazo" name="plazo"
                     value="{{ old('plazo', $proforma->plazo) }}"
+                    min="{{ now()->toDateString() }}"
                     style="width:100%; box-sizing:border-box;">
             </div>
         </div>
