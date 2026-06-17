@@ -49,7 +49,7 @@ class ProformaController extends Controller
             'fecha'          => now(),
             'total_aprox'    => 0,
             'estado'         => 'Borrador',
-            'plazo'          => $request->plazo,
+            'plazo'          => $request->plazo ?? now()->addDays(5)->toDateString(),
         ]);
 
         foreach ($request->input('repuestos', []) as $r) {
@@ -85,7 +85,8 @@ class ProformaController extends Controller
     public function show(Proforma $proforma)
     {
         $proforma->load('repuestos.repuesto', 'servicios.manoObra', 'diagnostico.auto', 'cliente');
-        return view('proforma.show', compact('proforma'));
+        $from = request()->query('from');
+        return view('proforma.show', compact('proforma', 'from'));
     }
 
     // CU-06: editar proforma (solo en estado Borrador)

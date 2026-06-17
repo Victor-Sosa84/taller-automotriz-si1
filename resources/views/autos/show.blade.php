@@ -144,7 +144,6 @@
                         <span style="font-size:.7rem; font-weight:700; padding:.2rem .6rem; border-radius:999px; {{ $estilo }}">
                             {{ $p->estado }}
                         </span>
-                        <a href="{{ route('proforma.show', $p->nro) }}" class="btn btn-ghost btn-sm">Ver →</a>
                     </div>
                 </div>
                 <div style="font-size:.82rem; color:var(--muted); margin-top:.5rem;">

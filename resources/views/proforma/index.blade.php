@@ -86,7 +86,7 @@
                             </span>
                         </td>
                         <td>
-                            <a href="{{ route('proforma.show', $p->nro) }}" class="btn btn-ghost btn-sm">Ver</a>
+                            <a href="{{ route('proforma.show', $p->nro) }}?from=index" class="btn btn-ghost btn-sm">Ver</a>
                         </td>
                     </tr>
                 @empty

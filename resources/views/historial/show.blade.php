@@ -129,33 +129,31 @@
         {{-- Proforma y Orden de Trabajo --}}
         @if($diag->proforma)
             @php $proforma = $diag->proforma; @endphp
-
-            <div style="background:rgba(245,166,35,.04); border:1px solid rgba(245,166,35,.12); border-radius:6px; padding:1rem; margin-bottom:.75rem;">
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:.5rem; flex-wrap:wrap; gap:.5rem;">
-                    <span style="font-family:'Barlow Condensed',sans-serif; font-weight:700;">
+            @php
+                $colores = [
+                    'Borrador'  => 'background:rgba(107,117,145,.2); color:var(--muted);',
+                    'Emitida'   => 'background:rgba(52,152,219,.15); color:#5dade2;',
+                    'Aprobada'  => 'background:rgba(46,204,113,.15); color:var(--success);',
+                    'Observada' => 'background:rgba(245,166,35,.15); color:var(--accent);',
+                    'Anulada'   => 'background:rgba(231,76,60,.1); color:var(--danger);',
+                ];
+                $estiloP = $colores[$proforma->estado] ?? '';
+            @endphp
+            <div style="background:rgba(245,166,35,.05); border:1px solid rgba(245,166,35,.15); border-radius:6px; padding:.9rem 1rem; margin-bottom:.75rem;">
+                <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.5rem;">
+                    <div style="font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:.95rem;">
                         📄 Proforma #{{ $proforma->nro }}
-                    </span>
-                    <div style="display:flex; gap:.75rem; font-size:.8rem; color:var(--muted);">
-                        <span>{{ $proforma->fecha->format('d/m/Y') }}</span>
-                        <span style="color:var(--accent); font-weight:600;">
-                            Bs. {{ number_format($proforma->total_aprox, 2) }}
-                        </span>
-                        @php
-                            $colores = [
-                                'Borrador'  => 'background:rgba(107,117,145,.2); color:var(--muted);',
-                                'Emitida'   => 'background:rgba(52,152,219,.15); color:#5dade2;',
-                                'Aprobada'  => 'background:rgba(46,204,113,.15); color:var(--success);',
-                                'Observada' => 'background:rgba(245,166,35,.15); color:var(--accent);',
-                                'Anulada'   => 'background:rgba(231,76,60,.1); color:var(--danger);',
-                            ];
-                            $estiloP = $colores[$proforma->estado] ?? '';
-                        @endphp
-                        @if($proforma->estado)
-                            <span style="font-size:.7rem; font-weight:700; padding:.2rem .6rem; border-radius:999px; {{ $estiloP }}">
-                                {{ $proforma->estado }}
-                            </span>
-                        @endif
                     </div>
+                    @if($proforma->estado)
+                        <span style="font-size:.7rem; font-weight:700; padding:.2rem .6rem; border-radius:999px; {{ $estiloP }}">
+                            {{ $proforma->estado }}
+                        </span>
+                    @endif
+                </div>
+                <div style="font-size:.82rem; color:var(--muted); margin-top:.5rem;">
+                    Total: <strong style="color:var(--accent);">Bs {{ number_format($proforma->total_aprox, 2) }}</strong>
+                    · Fecha: {{ $proforma->fecha->format('d/m/Y') }}
+                    @if($proforma->plazo) · Plazo: {{ \Carbon\Carbon::parse($proforma->plazo)->format('d/m/Y') }} @endif
                 </div>
             </div>
 

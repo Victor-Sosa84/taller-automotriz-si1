@@ -6,8 +6,11 @@
     {{-- Header --}}
     <div style="margin-bottom:1.5rem; display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
         <div>
-            <a href="{{ route('diagnostico.show', $proforma->id_diagnostico) }}" 
-                style="font-size:.8rem; color:var(--muted); text-decoration:none;">← Volver a diagnóstico</a>
+            @if(isset($from) && $from === 'index')
+                <a href="{{ route('proforma.index') }}" style="font-size:.8rem; color:var(--muted); text-decoration:none;">← Volver a proformas</a>
+            @else
+                <a href="{{ route('diagnostico.show', $proforma->id_diagnostico) }}" style="font-size:.8rem; color:var(--muted); text-decoration:none;">← Volver a diagnóstico</a>
+            @endif
             <div style="display:flex; align-items:center; gap:.75rem; margin-top:.5rem; flex-wrap:wrap;">
                 <h2 style="font-family:'Barlow Condensed',sans-serif; font-size:1.8rem; font-weight:800; margin:0;">
                     Proforma #{{ $proforma->nro }}
