@@ -57,7 +57,7 @@ Sistema web desarrollado con **Laravel 11** para la gestión interna del Taller 
 | Detalles OT | Registro de repuestos y mano de obra ejecutada (CU-16) | CU16_BUS/ADD/MOD/DEL |
 | Préstamos | Registro y seguimiento de préstamos de herramientas (CU-09) | CU09_BUS/ADD/DEL |
 | Estado Herramientas | Registro de devoluciones y actualización de estado (CU-10) | CU10_MOD |
-| Catálogos | Gestión de repuestos, MO, herramientas, tipos y marcas | CU13_PRI |
+| Catálogos | Gestión de repuestos, MO, herramientas, tipos y marcas, con precio/costo referencial | CU13_PRI |
 
 ---
 
@@ -253,3 +253,4 @@ php artisan tinker
 - En **producción** (Railway): `SESSION_SECURE_COOKIE=true` y `SESSION_SAME_SITE=lax` son obligatorios para que funcione en dispositivos móviles.
 - Los privilegios del Ciclo 3 y 4 se agregarán al `PermisoSeeder` usando `insertOrIgnore` — sin borrar asignaciones existentes.
 - El usuario `id=1` es el Admin Principal intocable — no se puede eliminar ni modificar desde la interfaz.
+- El estado **"Vencida"** de una proforma no se guarda en la base de datos: se calcula dinámicamente (`Proforma::estado_visual`) cuando el plazo de validez ya pasó y el estado real es Emitida u Observada.
