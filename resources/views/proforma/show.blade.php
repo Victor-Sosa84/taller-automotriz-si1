@@ -21,12 +21,13 @@
                         'Emitida'   => 'background:rgba(52,152,219,.15); color:#5dade2;',
                         'Aprobada'  => 'background:rgba(46,204,113,.15); color:var(--success);',
                         'Observada' => 'background:rgba(231,76,60,.15); color:var(--danger);',
+                        'Vencida'   => 'background:rgba(231,76,60,.12); color:var(--danger);',
                         'Anulada' => 'background:rgba(231,76,60,.1); color:var(--danger);',
                     ];
-                    $estilo = $colores[$proforma->estado] ?? '';
+                    $estilo = $colores[$proforma->estado_visual] ?? '';
                 @endphp
                 <span style="font-size:.75rem; font-weight:700; padding:.25rem .75rem; border-radius:999px; text-transform:uppercase; letter-spacing:.05em; {{ $estilo }}">
-                    {{ $proforma->estado }}
+                    {{ $proforma->estado_visual }}
                 </span>
             </div>
             <p style="color:var(--muted); font-size:.9rem; margin-top:.4rem;">
@@ -53,8 +54,9 @@
                     'Emitida'   => ['Aprobada', 'Observada', 'Anulada'],
                     'Aprobada'  => ['Anulada'],
                     'Observada' => ['Emitida', 'Anulada'],
+                    'Vencida'   => ['Anulada'],
                 ];
-                $opciones = $transiciones[$proforma->estado] ?? [];
+                $opciones = $transiciones[$proforma->estado_visual] ?? [];
             @endphp
 
             @if(count($opciones) > 0)
@@ -69,7 +71,7 @@
                     <button type="submit" class="btn btn-ghost btn-sm">Cambiar estado</button>
                 </form>
             @endif
-            @if(in_array($proforma->estado, ['Borrador', 'Observada']))
+            @if(in_array($proforma->estado, ['Borrador', 'Observada']) && $proforma->estado_visual !== 'Vencida')
                 <form method="POST" action="{{ route('proforma.destroy', $proforma->nro) }}" id="form-eliminar">
                     @csrf @method('DELETE')
                     <button type="button" class="btn btn-danger btn-sm" onclick="abrirModal()">Eliminar</button>
