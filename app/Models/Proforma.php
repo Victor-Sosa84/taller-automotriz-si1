@@ -48,4 +48,14 @@ class Proforma extends Model
         });
         return round($totalRepuestos + $totalServicios, 2);
     }
+
+    public function getEstadoVisualAttribute()
+    {
+        if (in_array($this->estado, ['Emitida', 'Observada']) 
+            && $this->plazo 
+            && now()->toDateString() > $this->plazo) {
+            return 'Vencida';
+        }
+        return $this->estado;
+    }
 }

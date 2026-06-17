@@ -233,7 +233,16 @@ class ProformaController extends Controller
     {
         $query = Proforma::with('diagnostico.auto')->latest('fecha');
 
-        if ($request->filled('estado')) {
+        if ($request->estado === 'Vencida') {
+            $query->whereIn('estado', ['Emitida', 'Observada'])
+                ->whereDate('plazo', '<', now());
+        } elseif (in_array($request->estado, ['Emitida', 'Observada'])) {
+            $query->where('estado', $request->estado)
+                ->where(function($q) {
+                    $q->whereNull('plazo')
+                        ->orWhereDate('plazo', '>=', now());
+                });
+        } elseif ($request->filled('estado')) {
             $query->where('estado', $request->estado);
         }
         if ($request->filled('desde')) {

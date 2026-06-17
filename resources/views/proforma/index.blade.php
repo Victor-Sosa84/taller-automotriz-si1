@@ -16,7 +16,7 @@
                 <label>Estado</label>
                 <select name="estado" style="width:100%; box-sizing:border-box;">
                     <option value="">Todos</option>
-                    @foreach(['Borrador','Emitida','Aprobada','Observada','Anulada'] as $e)
+                    @foreach(['Borrador','Emitida','Aprobada','Observada','Vencida','Anulada'] as $e)
                         <option value="{{ $e }}" {{ request('estado') === $e ? 'selected' : '' }}>{{ $e }}</option>
                     @endforeach
                 </select>
@@ -63,9 +63,10 @@
                             'Emitida'   => 'background:rgba(52,152,219,.15); color:#5dade2;',
                             'Aprobada'  => 'background:rgba(46,204,113,.15); color:var(--success);',
                             'Observada' => 'background:rgba(245,166,35,.15); color:var(--accent);',
+                            'Vencida'   => 'background:rgba(231,76,60,.12); color:var(--danger);',
                             'Anulada'   => 'background:rgba(231,76,60,.1); color:var(--danger);',
                         ];
-                        $estilo = $colores[$p->estado] ?? '';
+                        $estilo = $colores[$p->estado_visual] ?? '';
                     @endphp
                     <tr>
                         <td><strong>#{{ $p->nro }}</strong></td>
@@ -82,7 +83,7 @@
                         <td><strong>Bs {{ number_format($p->total_aprox, 2) }}</strong></td>
                         <td>
                             <span style="font-size:.7rem; font-weight:700; padding:.2rem .6rem; border-radius:999px; {{ $estilo }}">
-                                {{ $p->estado }}
+                                {{ $p->estado_visual }}
                             </span>
                         </td>
                         <td>
