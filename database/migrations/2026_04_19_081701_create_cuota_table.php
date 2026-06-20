@@ -13,12 +13,14 @@ return new class extends Migration
             $table->integer('nro_cuota');
             $table->decimal('monto', 10, 2);
             $table->date('fecha');
+            $table->string('tipo_pago', 10)->nullable();
+            $table->string('referencia_stripe', 40)->nullable();
 
             $table->primary(['nro_factura', 'nro_cuota']);
 
             $table->foreign('nro_factura')
-                  ->references('nro')->on('factura')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('nro')->on('factura')
+                    ->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

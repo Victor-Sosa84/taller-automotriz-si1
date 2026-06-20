@@ -11,8 +11,8 @@ return new class extends Migration
         Schema::create('factura', function (Blueprint $table) {
             $table->integer('nro')->autoIncrement()->primary();
             $table->dateTime('fecha_emision');
-            $table->string('nit', 20)->nullable();
-            $table->string('nombre', 100)->nullable();
+            $table->string('nit', 20);
+            $table->string('nombre', 100);
             $table->decimal('total', 10, 2);
             $table->date('plazo')->nullable();
         });

@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
 
             // ── Nivel 2: depende de rol + persona ─────────────────
             AdminSeeder::class,            // siembra persona + administrador
+            DatosPruebaSeeder::class,      // clientes y autos de prueba
         ]);
     }
 }

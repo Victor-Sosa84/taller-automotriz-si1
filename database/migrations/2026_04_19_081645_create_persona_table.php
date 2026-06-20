@@ -13,6 +13,7 @@ return new class extends Migration
             $table->string('nombre', 100);
             $table->string('telefono', 20)->nullable();
             $table->string('direccion', 255)->nullable();
+            $table->string('nit', 20)->nullable();
             $table->boolean('es_cliente')->default(false);
             $table->boolean('es_personal')->default(false);
         });
