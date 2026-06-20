@@ -6,7 +6,7 @@
     <div style="margin-bottom:1.5rem;">
         <a href="{{ route('orden_trabajo.show', $orden->nro) }}" style="font-size:.8rem; color:var(--muted); text-decoration:none;">← Volver a la orden</a>
         <h2 style="font-family:'Barlow Condensed',sans-serif; font-size:1.8rem; font-weight:800; margin-top:.5rem;">
-            Asignar Responsables — OT #{{ $orden->nro }}
+            Responsables de tareas — Orden de Trabajo #{{ $orden->nro }}
         </h2>
         <p style="color:var(--muted); font-size:.95rem; margin-top:.25rem;">
             {{ $orden->auto->placa ?? '—' }} &mdash; {{ $orden->proforma->cliente->nombre ?? 'Sin cliente' }}
@@ -24,7 +24,9 @@
                     <th>Personal</th>
                     <th>Mano de Obra</th>
                     <th>Tipo de Participación</th>
+                    @if($orden->puede_editarse)
                     <th style="text-align:center;">Acciones</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -33,16 +35,18 @@
                     <td>{{ $asignacion->persona->nombre ?? '—' }}</td>
                     <td>{{ $asignacion->manoObra->descripcion ?? '—' }}</td>
                     <td>{{ $asignacion->tipo_participacion ?? '—' }}</td>
+                    @if($orden->puede_editarse)
                     <td style="text-align:center;">
-                        @if(auth()->user()->puede('CU15_MOD'))
+                        @if(auth()->user()->puede('CU15_MOD') && $orden->puede_editarse)
                         <button onclick="abrirEditar('{{ $asignacion->ci_personal }}', {{ $asignacion->id_mano_obra }}, '{{ $asignacion->tipo_participacion }}')"
                             class="btn btn-sm btn-ghost">Editar</button>
                         @endif
                     </td>
+                    @endif
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="4" style="text-align:center; color:var(--muted); padding:2rem;">No hay responsables asignados aún.</td>
+                    <td colspan="{{ $orden->puede_editarse ? 4 : 3 }}" style="text-align:center; color:var(--muted); padding:2rem;">No hay responsables asignados aún.</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -50,7 +54,7 @@
     </div>
 
     {{-- Formulario nueva asignación --}}
-    @if(auth()->user()->puede('CU15_ADD'))
+    @if(auth()->user()->puede('CU15_ADD') && $orden->puede_editarse)
     <div class="form-card" style="margin-bottom:1.5rem;">
         <div style="margin-bottom:1.25rem;">
             <span style="font-family:'Barlow Condensed',sans-serif; font-size:1rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em;">Nueva Asignación</span>

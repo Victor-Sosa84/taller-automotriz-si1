@@ -70,7 +70,7 @@ class OrdenTrabajoController extends Controller
     {
         $orden = OrdenTrabajo::findOrFail($nro);
 
-        if ($orden->estado === 'Finalizada') {
+        if (!$orden->puede_editarse) {
             return redirect()->back()->with('error', 'No se puede modificar una orden de trabajo finalizada.');
         }
 
@@ -96,7 +96,7 @@ class OrdenTrabajoController extends Controller
     {
         $orden = OrdenTrabajo::with(['proforma.cliente', 'auto'])->findOrFail($nro);
 
-        if ($orden->estado === 'Finalizada') {
+        if (!$orden->puede_editarse) {
             return redirect()->back()->with('error', 'No se puede modificar una orden de trabajo finalizada.');
         }
 

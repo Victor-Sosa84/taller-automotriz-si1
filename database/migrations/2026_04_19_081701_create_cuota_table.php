@@ -10,13 +10,13 @@ return new class extends Migration
     {
         Schema::create('cuota', function (Blueprint $table) {
             $table->integer('nro_factura');
-            $table->integer('nro_cuota');
+            $table->integer('nro');
             $table->decimal('monto', 10, 2);
             $table->date('fecha');
             $table->string('tipo_pago', 10)->nullable();
             $table->string('referencia_stripe', 40)->nullable();
 
-            $table->primary(['nro_factura', 'nro_cuota']);
+            $table->primary(['nro_factura', 'nro']);
 
             $table->foreign('nro_factura')
                     ->references('nro')->on('factura')

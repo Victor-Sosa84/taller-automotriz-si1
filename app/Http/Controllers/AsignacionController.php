@@ -21,7 +21,7 @@ class AsignacionController extends Controller
     public function registrarAsignacion(Request $request, int $nro)
     {
         $orden = OrdenTrabajo::findOrFail($nro);
-        if ($orden->estado === 'Finalizada') {
+        if (!$orden->puede_editarse) {
             return redirect()->back()->with('error', 'No se puede asignar responsables a una orden de trabajo finalizada.');
         }
 
@@ -47,7 +47,7 @@ class AsignacionController extends Controller
     public function actualizarAsignacion(Request $request, int $nro, string $ci, int $idManoObra)
     {
         $orden = OrdenTrabajo::findOrFail($nro);
-        if ($orden->estado === 'Finalizada') {
+        if (!$orden->puede_editarse) {
             return redirect()->back()->with('error', 'No se puede asignar responsables a una orden de trabajo finalizada.');
         }
 

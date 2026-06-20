@@ -11,10 +11,6 @@
         <p style="color:var(--muted); font-size:.95rem; margin-top:.25rem;">Detalle completo de la orden de trabajo.</p>
     </div>
 
-    @if(session('success'))
-        <div class="alert alert-success" style="margin-bottom:1rem;">{{ session('success') }}</div>
-    @endif
-
     <div class="form-card">
         <div class="form-grid">
 
@@ -94,13 +90,19 @@
 
         <div class="form-actions">
             @if(auth()->user()->puede('CU15_BUS'))
-            <a href="{{ route('asignacion.index', $orden->nro) }}" class="btn btn-ghost">Asignar Responsables</a>
+            <a href="{{ route('asignacion.index', $orden->nro) }}" class="btn btn-ghost">Responsables de tareas</a>
             @endif
             @if(auth()->user()->puede('CU16_BUS'))
-            <a href="{{ route('detalle_ot.index', $orden->nro) }}" class="btn btn-ghost">Ver Detalles</a>
+            <a href="{{ route('detalle_ot.index', $orden->nro) }}" class="btn btn-ghost">Detalles de Repuestos y Mano de Obra</a>
             @endif
-            @if(auth()->user()->puede('CU14_MOD'))
-            <a href="{{ route('orden_trabajo.edit', $orden->nro) }}" class="btn btn-primary">Modificar Orden</a>
+            @if($orden->puede_editarse)
+                @if(auth()->user()->puede('CU14_MOD'))
+                <a href="{{ route('orden_trabajo.edit', $orden->nro) }}" class="btn btn-primary">Cerrar Orden</a>
+                @endif
+            @elseif($orden->estado === 'Finalizada' && !$orden->factura)
+                @if(auth()->user()->puede('CU17_GEN'))
+                <a href="{{ route('factura.create', $orden->nro) }}" class="btn btn-primary">Generar Factura Final</a>
+                @endif
             @endif
         </div>
     </div>

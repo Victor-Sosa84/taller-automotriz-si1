@@ -6,16 +6,12 @@
     <div style="margin-bottom:1.5rem;">
         <a href="{{ route('orden_trabajo.show', $orden->nro) }}" style="font-size:.8rem; color:var(--muted); text-decoration:none;">← Volver a la orden</a>
         <h2 style="font-family:'Barlow Condensed',sans-serif; font-size:1.8rem; font-weight:800; margin-top:.5rem;">
-            Detalles — OT #{{ $orden->nro }}
+            Detalles — Orden de Trabajo #{{ $orden->nro }}
         </h2>
         <p style="color:var(--muted); font-size:.95rem; margin-top:.25rem;">
             {{ $orden->auto->placa ?? '—' }} &mdash; {{ $orden->proforma->cliente->nombre ?? 'Sin cliente' }}
         </p>
     </div>
-
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
 
     {{-- Repuestos --}}
     <div class="table-wrap" style="margin-bottom:1.5rem;">
@@ -30,7 +26,9 @@
                     <th>Precio Unit.</th>
                     <th>Descuento</th>
                     <th>Subtotal</th>
+                    @if($orden->puede_editarse)
                     <th style="text-align:center;">Acciones</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -41,12 +39,13 @@
                     <td>Bs. {{ number_format($dr->precio_unitario, 2) }}</td>
                     <td>{{ $dr->descuento }}%</td>
                     <td>Bs. {{ number_format($dr->cantidad * $dr->precio_unitario * (1 - $dr->descuento / 100), 2) }}</td>
+                    @if($orden->puede_editarse)
                     <td style="text-align:center; white-space:nowrap;">
-                        @if(auth()->user()->puede('CU16_MOD'))
+                        @if(auth()->user()->puede('CU16_MOD') && $orden->puede_editarse)
                         <button onclick="abrirEditarRep({{ $dr->id_repuesto }}, {{ $dr->cantidad }}, {{ $dr->precio_unitario }}, {{ $dr->descuento }})"
                             class="btn btn-sm btn-ghost">Editar</button>
                         @endif
-                        @if(auth()->user()->puede('CU16_DEL'))
+                        @if(auth()->user()->puede('CU16_DEL') && $orden->puede_editarse)
                         <form method="POST" action="{{ route('detalle_ot.destroy', [$orden->nro, 'repuesto', $dr->id_repuesto]) }}" style="display:inline;"
                             onsubmit="return confirm('¿Eliminar este repuesto?')">
                             @csrf @method('DELETE')
@@ -54,10 +53,11 @@
                         </form>
                         @endif
                     </td>
+                    @endif
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" style="text-align:center; color:var(--muted); padding:1.5rem;">Sin repuestos registrados.</td>
+                    <td colspan="{{ $orden->puede_editarse ? 6 : 5 }}" style="text-align:center; color:var(--muted); padding:1.5rem;">Sin repuestos registrados.</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -76,7 +76,9 @@
                     <th>Cantidad</th>
                     <th>Costo</th>
                     <th>Estado</th>
+                    @if($orden->puede_editarse)
                     <th style="text-align:center;">Acciones</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -86,12 +88,13 @@
                     <td>{{ $dt->cantidad }}</td>
                     <td>Bs. {{ number_format($dt->costo, 2) }}</td>
                     <td>{{ $dt->estado ?? '—' }}</td>
+                    @if($orden->puede_editarse)
                     <td style="text-align:center; white-space:nowrap;">
-                        @if(auth()->user()->puede('CU16_MOD'))
+                        @if(auth()->user()->puede('CU16_MOD') && $orden->puede_editarse)
                         <button onclick="abrirEditarMO({{ $dt->id_mano_obra }}, {{ $dt->cantidad }}, {{ $dt->costo }}, '{{ $dt->estado }}')"
                             class="btn btn-sm btn-ghost">Editar</button>
                         @endif
-                        @if(auth()->user()->puede('CU16_DEL'))
+                        @if(auth()->user()->puede('CU16_DEL') && $orden->puede_editarse)
                         <form method="POST" action="{{ route('detalle_ot.destroy', [$orden->nro, 'mano_obra', $dt->id_mano_obra]) }}" style="display:inline;"
                             onsubmit="return confirm('¿Eliminar este servicio?')">
                             @csrf @method('DELETE')
@@ -99,10 +102,11 @@
                         </form>
                         @endif
                     </td>
+                    @endif
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5" style="text-align:center; color:var(--muted); padding:1.5rem;">Sin mano de obra registrada.</td>
+                    <td colspan="{{ $orden->puede_editarse ? 5 : 4 }}" style="text-align:center; color:var(--muted); padding:1.5rem;">Sin mano de obra registrada.</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -110,7 +114,7 @@
     </div>
 
     {{-- Formulario nuevo detalle --}}
-    @if(auth()->user()->puede('CU16_ADD'))
+    @if(auth()->user()->puede('CU16_ADD') && $orden->puede_editarse)
     <div class="form-card">
         <div style="margin-bottom:1.25rem;">
             <span style="font-family:'Barlow Condensed',sans-serif; font-size:1rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em;">Registrar Detalle</span>

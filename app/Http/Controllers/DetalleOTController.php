@@ -25,7 +25,7 @@ class DetalleOTController extends Controller
     public function registrarDetalles(Request $request, int $nro)
     {
         $orden = OrdenTrabajo::findOrFail($nro);
-        if ($orden->estado === 'Finalizada') {
+        if (!$orden->puede_editarse) {
             return redirect()->back()->with('error', 'No se puede modificar una orden de trabajo finalizada.');
         }
 
@@ -66,7 +66,7 @@ class DetalleOTController extends Controller
     public function editarDetalles(Request $request, int $nro, string $tipo, int $id)
     {
         $orden = OrdenTrabajo::findOrFail($nro);
-        if ($orden->estado === 'Finalizada') {
+        if (!$orden->puede_editarse) {
             return redirect()->back()->with('error', 'No se puede modificar una orden de trabajo finalizada.');
         }
 
@@ -104,7 +104,7 @@ class DetalleOTController extends Controller
     public function eliminarDetalles(int $nro, string $tipo, int $id)
     {
         $orden = OrdenTrabajo::findOrFail($nro);
-        if ($orden->estado === 'Finalizada') {
+        if (!$orden->puede_editarse) {
             return redirect()->back()->with('error', 'No se puede modificar una orden de trabajo finalizada.');
         }
 

@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('detalle_factura', function (Blueprint $table) {
-            $table->integer('id_detalle_factura')->autoIncrement()->primary();
+            $table->integer('id');
             $table->integer('nro_factura');
             $table->string('descripcion', 255);
             $table->string('tipo', 50)->nullable();
@@ -17,9 +17,11 @@ return new class extends Migration
             $table->decimal('precio', 10, 2);
             $table->decimal('precio_unitario', 10, 2);
 
+            $table->primary(['nro_factura', 'id']);
+
             $table->foreign('nro_factura')
-                  ->references('nro')->on('factura')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('nro')->on('factura')
+                    ->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

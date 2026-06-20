@@ -19,8 +19,8 @@ return new class extends Migration
             $table->text('observacion_salida')->nullable();
 
             $table->foreign('nro_proforma')
-                  ->references('nro')->on('proforma')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('nro')->on('proforma')
+                    ->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

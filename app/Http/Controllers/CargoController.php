@@ -13,12 +13,12 @@ class CargoController extends Controller
     public function index(int $idUsuario)
     {
         $usuario = Usuario::with(['persona.tiposTrabajador', 'rol'])
-                          ->findOrFail($idUsuario);
+                            ->findOrFail($idUsuario);
 
         // Solo tiene sentido gestionar cargos de personal (no clientes puros)
         if (!$usuario->persona || !$usuario->persona->es_personal) {
             return redirect()->route('usuarios.index')
-                             ->with('error', 'Este usuario no tiene perfil de personal.');
+                                ->with('error', 'Este usuario no tiene perfil de personal.');
         }
 
         $tiposTodos      = TipoTrabajador::orderBy('descripcion')->get();
@@ -39,8 +39,8 @@ class CargoController extends Controller
 
         // Verificar que no esté ya asignado
         $yaAsignado = $persona->tiposTrabajador()
-                              ->where('id_tipo_trabajador', $request->id_tipo_trabajador)
-                              ->exists();
+                                ->where('id_tipo_trabajador', $request->id_tipo_trabajador)
+                                ->exists();
 
         if ($yaAsignado) {
             return back()->with('error', 'Este cargo ya está asignado al usuario.');

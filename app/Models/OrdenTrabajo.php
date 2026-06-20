@@ -44,4 +44,14 @@ class OrdenTrabajo extends Model
     {
         return $this->hasMany(Realiza::class, 'nro_orden_trabajo', 'nro');
     }
+
+    public function factura()
+    {
+        return $this->hasOne(Factura::class, 'nro_orden_trabajo', 'nro');
+    }
+
+    public function getPuedeEditarseAttribute(): bool
+    {
+        return !in_array($this->estado, ['Finalizada', 'Anulada']);
+    }   
 }

@@ -6,7 +6,7 @@
     <div style="margin-bottom:1.5rem;">
         <a href="{{ route('orden_trabajo.show', $orden->nro) }}" style="font-size:.8rem; color:var(--muted); text-decoration:none;">← Volver al detalle</a>
         <h2 style="font-family:'Barlow Condensed',sans-serif; font-size:1.8rem; font-weight:800; margin-top:.5rem;">
-            Editar Orden #{{ $orden->nro }}
+            Cerrar Orden de Trabajo #{{ $orden->nro }}
         </h2>
         <p style="color:var(--muted); font-size:.95rem; margin-top:.25rem;">Modifique el estado u observaciones de la orden de trabajo.</p>
     </div>
@@ -47,7 +47,7 @@
     <form action="{{ route('orden_trabajo.update', $orden->nro) }}" method="POST" class="form-card">
         @csrf
         @method('PUT')
-        <input type="hidden" name="fecha_inicio" value="{{ $orden->fecha_inicio }}">
+        <input type="hidden" name="fecha_inicio" value="{{ $orden->fecha_inicio->format('Y-m-d') }}">
 
         <div class="form-grid">
             <div class="field-group">
@@ -87,7 +87,7 @@
 
         <div class="form-actions">
             <a href="{{ route('orden_trabajo.show', $orden->nro) }}" class="btn btn-ghost" style="color:var(--muted);">Cancelar</a>
-            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            <button type="submit" class="btn btn-primary">Cerrar Orden</button>
         </div>
     </form>
 </div>
