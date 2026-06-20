@@ -47,6 +47,7 @@
     <form action="{{ route('orden_trabajo.update', $orden->nro) }}" method="POST" class="form-card">
         @csrf
         @method('PUT')
+        <input type="hidden" name="fecha_inicio" value="{{ $orden->fecha_inicio }}">
 
         <div class="form-grid">
             <div class="field-group">
@@ -55,7 +56,7 @@
                 $estados = match($orden->estado) {
                     'Pendiente de Diagnóstico' => ['Pendiente de Diagnóstico', 'En Proceso', 'Anulada'],
                     'Diagnóstico Finalizado'   => ['Diagnóstico Finalizado', 'En Proceso', 'Anulada'],
-                    'En Proceso'               => ['En Proceso', 'Finalizada', 'Anulada'],
+                    'En Proceso'               => ['Finalizada', 'Anulada'],
                     'Finalizada'               => ['Finalizada'],
                     'Anulada'                  => ['Anulada'],
                     default                    => [$orden->estado],
@@ -71,9 +72,9 @@
             </div>
 
             <div class="field-group">
-                <label for="fecha_fin">Fecha de Finalización</label>
-                <input id="fecha_fin" name="fecha_fin" type="date"
-                    value="{{ old('fecha_fin', $orden->fecha_fin?->format('Y-m-d')) }}" />
+                <label for="fecha_fin">Fecha de Finalización <span class="req">*</span></label>
+                <input id="fecha_fin" name="fecha_fin" type="date" required
+                    value="{{ old('fecha_fin', $orden->fecha_fin?->format('Y-m-d') ?? now()->format('Y-m-d')) }}" />
             </div>
 
             <div class="field-group" style="grid-column:1 / -1;">

@@ -75,9 +75,9 @@ class OrdenTrabajoController extends Controller
         }
 
         $request->validate([
-            'estado'             => ['required', 'string'],
+            'estado'             => ['required', 'string', 'in:Finalizada,Anulada'],
             'observacion_salida' => ['nullable', 'string', 'max:1000'],
-            'fecha_fin'          => ['nullable', 'date'],
+            'fecha_fin'          => ['required_if:estado,Finalizada,Anulada', 'date', 'before_or_equal:today', 'after_or_equal:fecha_inicio'],
         ]);
 
         $orden->update([
