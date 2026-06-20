@@ -70,6 +70,10 @@ class OrdenTrabajoController extends Controller
     {
         $orden = OrdenTrabajo::findOrFail($nro);
 
+        if ($orden->estado === 'Finalizada') {
+            return redirect()->back()->with('error', 'No se puede modificar una orden de trabajo finalizada.');
+        }
+
         $request->validate([
             'estado'             => ['required', 'string'],
             'observacion_salida' => ['nullable', 'string', 'max:1000'],
@@ -91,6 +95,11 @@ class OrdenTrabajoController extends Controller
     public function editarOrden(int $nro)
     {
         $orden = OrdenTrabajo::with(['proforma.cliente', 'auto'])->findOrFail($nro);
+
+        if ($orden->estado === 'Finalizada') {
+            return redirect()->back()->with('error', 'No se puede modificar una orden de trabajo finalizada.');
+        }
+
         return view('orden_trabajo.edit', compact('orden'));
     }
 }

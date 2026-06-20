@@ -24,6 +24,10 @@ class DetalleOTController extends Controller
 
     public function registrarDetalles(Request $request, int $nro)
     {
+        $orden = OrdenTrabajo::findOrFail($nro);
+        if ($orden->estado === 'Finalizada') {
+            return redirect()->back()->with('error', 'No se puede modificar una orden de trabajo finalizada.');
+        }
 
         $validated = $request->validate([
             'tipo'            => ['required', 'in:repuesto,mano_obra'],
@@ -61,6 +65,11 @@ class DetalleOTController extends Controller
 
     public function editarDetalles(Request $request, int $nro, string $tipo, int $id)
     {
+        $orden = OrdenTrabajo::findOrFail($nro);
+        if ($orden->estado === 'Finalizada') {
+            return redirect()->back()->with('error', 'No se puede modificar una orden de trabajo finalizada.');
+        }
+
         $request->validate([
             'cantidad'        => ['required', 'integer', 'min:1'],
             'precio_unitario' => ['nullable', 'numeric', 'min:0'],
@@ -94,6 +103,11 @@ class DetalleOTController extends Controller
 
     public function eliminarDetalles(int $nro, string $tipo, int $id)
     {
+        $orden = OrdenTrabajo::findOrFail($nro);
+        if ($orden->estado === 'Finalizada') {
+            return redirect()->back()->with('error', 'No se puede modificar una orden de trabajo finalizada.');
+        }
+
         if ($tipo === 'repuesto') {
             DetalleRepuesto::where('nro_orden_trabajo', $nro)
                 ->where('id_repuesto', $id)
