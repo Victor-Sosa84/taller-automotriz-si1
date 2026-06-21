@@ -17,9 +17,9 @@
                     <th>Proforma</th>
                     <th>Fecha Inicio</th>
                     <th>Estado</th>
-                    <th style="text-align:center;">Acciones</th>
+                    <th></th>
                 </tr>
-            </thead>
+            </thead>    
             <tbody>
                 @forelse($ordenes as $orden)
                 <tr style="vertical-align:middle;">
@@ -41,9 +41,6 @@
                     <td style="text-align:center; white-space:nowrap;">
                         @if(auth()->user()->puede('CU14_BUS'))
                         <a href="{{ route('orden_trabajo.show', $orden->nro) }}" class="btn btn-sm btn-ghost">Ver</a>
-                        @endif
-                        @if(auth()->user()->puede('CU14_MOD'))
-                        <a href="{{ route('orden_trabajo.edit', $orden->nro) }}" class="btn btn-sm btn-primary">Editar</a>
                         @endif
                     </td>
                 </tr>
