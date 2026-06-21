@@ -67,4 +67,9 @@ class OrdenTrabajo extends Model
 
         return $totalRepuestos + $totalTrabajos;
     }
+
+    public function getTieneConceptosFacturablesAttribute(): bool
+    {
+        return $this->detallesRepuesto->isNotEmpty() || $this->detallesTrabajo->isNotEmpty();
+    }
 }

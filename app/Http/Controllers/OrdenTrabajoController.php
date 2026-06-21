@@ -71,7 +71,11 @@ class OrdenTrabajoController extends Controller
         $orden = OrdenTrabajo::findOrFail($nro);
 
         if (!$orden->puede_editarse) {
-            return redirect()->back()->with('error', 'No se puede modificar una orden de trabajo finalizada.');
+            return redirect()->back()->with('error', 'No se puede modificar una orden de trabajo finalizada/anulada.');
+        }
+
+        if ($request->estado === 'Finalizada' && !$orden->tiene_conceptos_facturables) {
+            return redirect()->back()->with('error', 'No se puede finalizar una orden sin repuestos ni mano de obra registrados.');
         }
 
         $request->validate([
@@ -86,10 +90,10 @@ class OrdenTrabajoController extends Controller
             'fecha_fin'          => $request->fecha_fin,
         ]);
 
-        Bitacora::registrar('Actualización de Orden de Trabajo', "Orden #{$nro} - Estado: {$request->estado}");
+        Bitacora::registrar('Cierre de Orden de Trabajo', "Orden #{$nro} - Estado: {$request->estado}");
 
         return redirect()->route('orden_trabajo.show', $nro)
-                        ->with('success', 'Orden de trabajo actualizada correctamente.');
+                        ->with('success', 'Orden de trabajo cerrada correctamente.');
     }
 
     public function editarOrden(int $nro)
