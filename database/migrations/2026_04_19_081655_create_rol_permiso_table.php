@@ -19,12 +19,12 @@ return new class extends Migration
             $table->primary(['id_permiso', 'id_rol']);
 
             $table->foreign('id_permiso')
-                  ->references('id')->on('permiso')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('id')->on('permiso')
+                    ->onDelete('cascade')->onUpdate('cascade');
 
             $table->foreign('id_rol')
-                  ->references('id')->on('rol')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('id')->on('rol')
+                    ->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

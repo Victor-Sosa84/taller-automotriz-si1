@@ -16,8 +16,8 @@ return new class extends Migration
             $table->primary(['id_diagnostico', 'id_detalle_diagnostico']);
 
             $table->foreign('id_diagnostico')
-                  ->references('id')->on('diagnostico')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('id')->on('diagnostico')
+                    ->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

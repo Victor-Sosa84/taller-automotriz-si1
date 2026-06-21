@@ -19,12 +19,12 @@ return new class extends Migration
             $table->decimal('valor', 10, 2);
 
             $table->foreign('ci_personal')
-                  ->references('ci')->on('persona')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('ci')->on('persona')
+                    ->onDelete('cascade')->onUpdate('cascade');
 
             $table->foreign('tipo_remuneracion')
-                  ->references('nro')->on('tipo_remuneracion')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('nro')->on('tipo_remuneracion')
+                    ->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

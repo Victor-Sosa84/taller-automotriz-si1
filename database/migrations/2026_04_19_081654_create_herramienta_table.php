@@ -18,12 +18,12 @@ return new class extends Migration
             $table->boolean('disponible')->default(true);
 
             $table->foreign('id_tipo_herramienta')
-                  ->references('id')->on('tipo_herramienta')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('id')->on('tipo_herramienta')
+                    ->onDelete('cascade')->onUpdate('cascade');
 
             $table->foreign('id_marca_herramienta')
-                  ->references('id')->on('marca_herramienta')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('id')->on('marca_herramienta')
+                    ->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

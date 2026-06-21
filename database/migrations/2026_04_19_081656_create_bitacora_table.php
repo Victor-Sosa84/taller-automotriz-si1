@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('ip_equipo', 45)->nullable();
 
             $table->foreign('id_usuario')
-                  ->references('id_usuario')->on('usuario')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('id_usuario')->on('usuario')
+                    ->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

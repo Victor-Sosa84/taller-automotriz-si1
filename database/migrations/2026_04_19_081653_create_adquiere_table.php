@@ -16,12 +16,12 @@ return new class extends Migration
             $table->primary(['ci_personal', 'id_tipo_trabajador']);
 
             $table->foreign('ci_personal')
-                  ->references('ci')->on('persona')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('ci')->on('persona')
+                    ->onDelete('cascade')->onUpdate('cascade');
 
             $table->foreign('id_tipo_trabajador')
-                  ->references('id')->on('tipo_trabajador')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('id')->on('tipo_trabajador')
+                    ->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

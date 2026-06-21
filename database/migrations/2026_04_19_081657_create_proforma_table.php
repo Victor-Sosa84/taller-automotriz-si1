@@ -18,12 +18,12 @@ return new class extends Migration
             $table->date('plazo')->nullable();
 
             $table->foreign('ci_cliente')
-                  ->references('ci')->on('persona')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('ci')->on('persona')
+                    ->onDelete('cascade')->onUpdate('cascade');
 
             $table->foreign('id_diagnostico')
-                  ->references('id')->on('diagnostico')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('id')->on('diagnostico')
+                    ->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

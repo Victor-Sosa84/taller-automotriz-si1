@@ -17,8 +17,8 @@ return new class extends Migration
             $table->string('metodo', 50)->nullable();
 
             $table->foreign('id_contrato')
-                  ->references('id')->on('contrato')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('id')->on('contrato')
+                    ->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

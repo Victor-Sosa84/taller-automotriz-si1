@@ -17,12 +17,12 @@ return new class extends Migration
             $table->primary(['id_prestamo_herramienta', 'nro_herramienta']);
 
             $table->foreign('id_prestamo_herramienta')
-                  ->references('id')->on('prestamo_herramienta')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('id')->on('prestamo_herramienta')
+                    ->onDelete('cascade')->onUpdate('cascade');
 
             $table->foreign('nro_herramienta')
-                  ->references('nro')->on('herramienta')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('nro')->on('herramienta')
+                    ->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

@@ -18,12 +18,12 @@ return new class extends Migration
             $table->primary(['nro_proforma', 'id_repuesto']);
 
             $table->foreign('nro_proforma')
-                  ->references('nro')->on('proforma')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('nro')->on('proforma')
+                    ->onDelete('cascade')->onUpdate('cascade');
 
             $table->foreign('id_repuesto')
-                  ->references('id')->on('repuesto')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('id')->on('repuesto')
+                    ->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

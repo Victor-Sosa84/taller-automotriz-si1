@@ -17,12 +17,12 @@ return new class extends Migration
             $table->string('correo', 100)->nullable();
 
             $table->foreign('id_rol')
-                  ->references('id')->on('rol')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('id')->on('rol')
+                    ->onDelete('cascade')->onUpdate('cascade');
 
             $table->foreign('ci_personal')
-                  ->references('ci')->on('persona')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('ci')->on('persona')
+                    ->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

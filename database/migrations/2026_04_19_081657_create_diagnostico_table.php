@@ -15,12 +15,12 @@ return new class extends Migration
             $table->string('placa_auto', 15);
 
             $table->foreign('ci_personal')
-                  ->references('ci')->on('persona')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('ci')->on('persona')
+                    ->onDelete('cascade')->onUpdate('cascade');
 
             $table->foreign('placa_auto')
-                  ->references('placa')->on('auto')
-                  ->onDelete('cascade')->onUpdate('cascade');
+                    ->references('placa')->on('auto')
+                    ->onDelete('cascade')->onUpdate('cascade');
         });
     }
 
