@@ -67,6 +67,7 @@ class Factura extends Model
                 'tipo'            => 'Repuesto',
                 'cantidad'        => $dr->cantidad,
                 'precio_unitario' => $dr->precio_unitario,
+                'descuento'       => $dr->descuento,
                 'precio'          => $dr->cantidad * $dr->precio_unitario * (1 - $dr->descuento / 100),
             ]);
         }
@@ -79,6 +80,7 @@ class Factura extends Model
                 'tipo'            => 'Mano de Obra',
                 'cantidad'        => $dt->cantidad,
                 'precio_unitario' => $dt->costo,
+                'descuento'       => 0,
                 'precio'          => $dt->cantidad * $dt->costo,
             ]);
         }

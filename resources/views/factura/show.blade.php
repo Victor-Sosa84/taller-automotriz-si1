@@ -59,9 +59,10 @@
                 <tr>
                     <th>Descripción</th>
                     <th>Tipo</th>
-                    <th>Cantidad</th>
-                    <th>Precio Unit.</th>
-                    <th>Subtotal</th>
+                    <th class="text-center">Cantidad</th>
+                    <th class="text-right">Precio Unit.</th>
+                    <th class="text-right">Descuento</th>
+                    <th class="text-right">Subtotal</th>
                 </tr>
             </thead>
             <tbody>
@@ -69,9 +70,10 @@
                 <tr>
                     <td>{{ $d->descripcion }}</td>
                     <td>{{ $d->tipo }}</td>
-                    <td>{{ $d->cantidad }}</td>
-                    <td>Bs. {{ number_format($d->precio_unitario, 2) }}</td>
-                    <td>Bs. {{ number_format($d->precio, 2) }}</td>
+                    <td class="text-center">{{ $d->cantidad }}</td>
+                    <td class="text-right">Bs. {{ number_format($d->precio_unitario, 2) }}</td>
+                    <td class="text-right">{{ $d->descuento }}%</td>
+                    <td class="text-right">Bs. {{ number_format($d->precio, 2) }}</td>
                 </tr>
                 @endforeach
             </tbody>

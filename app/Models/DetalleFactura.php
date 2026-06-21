@@ -19,6 +19,7 @@ class DetalleFactura extends Model
         'cantidad',
         'precio',
         'precio_unitario',
+        'descuento'
     ];
 
     public function factura()

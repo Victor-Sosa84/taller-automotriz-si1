@@ -16,6 +16,7 @@ return new class extends Migration
             $table->integer('cantidad');
             $table->decimal('precio', 10, 2);
             $table->decimal('precio_unitario', 10, 2);
+            $table->decimal('descuento', 10, 2)->default(0.00);
 
             $table->primary(['nro_factura', 'id']);
 
