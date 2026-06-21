@@ -108,6 +108,8 @@
                 @if(auth()->user()->puede('CU17_GEN'))
                 <a href="{{ route('factura.create', $orden->nro) }}" class="btn btn-primary">Generar Factura Final</a>
                 @endif
+            @elseif($orden->factura)
+                <a href="{{ route('factura.show', $orden->factura->nro) }}" class="btn btn-ghost">Ver Factura</a>
             @endif
         </div>
     </div>

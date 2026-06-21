@@ -85,7 +85,12 @@
     </div>
 
     <div class="form-actions">
-        <a href="{{ route('factura.pdf', $factura->nro) }}" class="btn btn-primary" target="_blank">Descargar PDF</a>
+        <a href="{{ route('factura.pdf', $factura->nro) }}" class="btn btn-ghost" target="_blank">Descargar PDF</a>
+        @if($factura->saldo_pendiente > 0)
+            <a href="{{ route('cuota.create', $factura->nro) }}" class="btn btn-primary">Registrar Pago</a>
+        @else
+            <a href="{{ route('cuota.create', $factura->nro) }}" class="btn btn-primary">Ver Detalle de Pago</a>
+        @endif
     </div>
 </div>
 @endsection

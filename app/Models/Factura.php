@@ -83,4 +83,9 @@ class Factura extends Model
             ]);
         }
     }
+
+    public function getSaldoPendienteAttribute()
+    {
+        return $this->total - $this->cuotas->sum('monto');
+    }
 }

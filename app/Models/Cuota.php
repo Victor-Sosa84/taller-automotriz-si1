@@ -28,4 +28,9 @@ class Cuota extends Model
     {
         return $this->belongsTo(Factura::class, 'nro_factura', 'nro');
     }
+
+    public static function siguienteNumero(int $nroFactura): int
+    {
+        return (self::where('nro_factura', $nroFactura)->max('nro') ?? 0) + 1;
+    }
 }

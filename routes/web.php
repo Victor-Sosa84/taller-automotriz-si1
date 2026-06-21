@@ -19,6 +19,7 @@ use App\Http\Controllers\CatalogoController;
 use App\Http\Controllers\PrestamoController;
 use App\Http\Controllers\HerramientaController;
 use App\Http\Controllers\FacturaController;
+use App\Http\Controllers\CuotaController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -171,6 +172,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/ordenes/{nro}/factura', [FacturaController::class, 'crearFactura'])->name('factura.store')->middleware('permiso:CU17_GEN');
     Route::get('/facturas/{nro}', [FacturaController::class, 'mostrarFactura'])->name('factura.show')->middleware('permiso:CU17_BUS');
     Route::get('/facturas/{factura}/pdf', [FacturaController::class, 'pdf'])->name('factura.pdf')->middleware('permiso:CU17_BUS');
+    
+    // ── CU-18 Registrar pago y cuotas ─────────────────────────────────────
+    Route::get('/facturas/{nro}/pago', [CuotaController::class, 'mostrarPago'])->name('cuota.create')->middleware('permiso:CU18_ADD');
+    Route::post('/facturas/{nro}/pago', [CuotaController::class, 'registrarPago'])->name('cuota.store')->middleware('permiso:CU18_ADD');
+    Route::post('/api/cuota/intento-pago', [CuotaController::class, 'crearIntentoPago'])->name('api.cuota.intento_pago');
     });
 
 require __DIR__.'/auth.php';
