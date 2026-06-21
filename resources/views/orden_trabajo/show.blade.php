@@ -62,18 +62,23 @@
             </div>
 
             <div class="field-group">
-                <label>Kilometraje</label>
-                <p style="margin:0;">{{ number_format($orden->kilometraje) }} km</p>
-            </div>
-
-            <div class="field-group">
                 <label>Fecha Inicio</label>
                 <p style="margin:0;">{{ $orden->fecha_inicio ? $orden->fecha_inicio->format('d/m/Y H:i') : '—' }}</p>
             </div>
 
             <div class="field-group">
+                <label>Total Real</label>
+                <p style="margin:0;">Bs. {{ number_format($orden->total_real, 2) }}</p>
+            </div>
+
+            <div class="field-group">
                 <label>Fecha Fin</label>
                 <p style="margin:0;">{{ $orden->fecha_fin ? $orden->fecha_fin->format('d/m/Y H:i') : '—' }}</p>
+            </div>
+
+            <div class="field-group">
+                <label>Kilometraje</label>
+                <p style="margin:0;">{{ number_format($orden->kilometraje) }} km</p>
             </div>
 
             <div class="field-group" style="grid-column:1 / -1;">
@@ -101,7 +106,7 @@
                 @endif
             @elseif($orden->estado === 'Finalizada' && !$orden->factura)
                 @if(auth()->user()->puede('CU17_GEN'))
-                <a href="{{ route('factura.create', $orden->nro) }}" class="btn btn-primary">Generar Factura Final</a>
+                <a href=# class="btn btn-primary">Generar Factura Final</a>
                 @endif
             @endif
         </div>

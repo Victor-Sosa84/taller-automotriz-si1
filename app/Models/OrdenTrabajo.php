@@ -54,4 +54,17 @@ class OrdenTrabajo extends Model
     {
         return !in_array($this->estado, ['Finalizada', 'Anulada']);
     }   
+
+    public function getTotalRealAttribute()
+    {
+        $totalRepuestos = $this->detallesRepuesto->sum(function ($d) {
+            return $d->cantidad * $d->precio_unitario * (1 - $d->descuento / 100);
+        });
+
+        $totalTrabajos = $this->detallesTrabajo->sum(function ($d) {
+            return $d->costo * $d->cantidad;
+        });
+
+        return $totalRepuestos + $totalTrabajos;
+    }
 }
