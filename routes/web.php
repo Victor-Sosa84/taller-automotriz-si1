@@ -18,6 +18,7 @@ use App\Http\Controllers\DetalleOTController;
 use App\Http\Controllers\CatalogoController;
 use App\Http\Controllers\PrestamoController;
 use App\Http\Controllers\HerramientaController;
+use App\Http\Controllers\FacturaController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -125,7 +126,6 @@ Route::middleware(['auth'])->group(function () {
     // ── CU-14 Gestionar orden de trabajo ─────────────────────────────────────
     Route::get('/ordenes',              [OrdenTrabajoController::class, 'obtenerOrdenes'])->name('orden_trabajo.index')->middleware('permiso:CU14_BUS');
     Route::get('/ordenes/{nro}',        [OrdenTrabajoController::class, 'obtenerOrden'])->name('orden_trabajo.show')->middleware('permiso:CU14_BUS');
-    Route::get('/ordenes/{nro}/editar', [OrdenTrabajoController::class, 'actualizarOrden'])->name('orden_trabajo.edit')->middleware('permiso:CU14_MOD');
     Route::put('/ordenes/{nro}',        [OrdenTrabajoController::class, 'actualizarOrden'])->name('orden_trabajo.update')->middleware('permiso:CU14_MOD');
     Route::get('/ordenes/{nro}/editar', [OrdenTrabajoController::class, 'editarOrden'])->name('orden_trabajo.edit')->middleware('permiso:CU14_MOD');
     
@@ -165,6 +165,12 @@ Route::middleware(['auth'])->group(function () {
 
     // ── CU-10 Gestionar estado de herramientas ─────────────────────────────────────
     Route::put('/prestamos/{id}/devolucion', [HerramientaController::class, 'actualizarEstado'])->name('herramienta.devolucion')->middleware('permiso:CU10_MOD');
+    
+    // ── CU-17 Generar factura final ─────────────────────────────────────
+    Route::get('/ordenes/{nro}/factura/crear', [FacturaController::class, 'verDetalleFactura'])->name('factura.create')->middleware('permiso:CU17_GEN');
+    Route::post('/ordenes/{nro}/factura', [FacturaController::class, 'crearFactura'])->name('factura.store')->middleware('permiso:CU17_GEN');
+    Route::get('/facturas/{nro}', [FacturaController::class, 'mostrarFactura'])->name('factura.show')->middleware('permiso:CU17_BUS');
+    Route::get('/facturas/{factura}/pdf', [FacturaController::class, 'pdf'])->name('factura.pdf')->middleware('permiso:CU17_BUS');
     });
 
 require __DIR__.'/auth.php';

@@ -45,4 +45,10 @@ class Persona extends Model
         );
     }
 
+    public function actualizarCliente(string $nit): void
+    {
+        if ($this->nit !== $nit) {
+            $this->update(['nit' => $nit]);
+        }
+    }
 }

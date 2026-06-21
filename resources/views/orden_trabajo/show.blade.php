@@ -106,7 +106,7 @@
                 @endif
             @elseif($orden->estado === 'Finalizada' && !$orden->factura)
                 @if(auth()->user()->puede('CU17_GEN'))
-                <a href=# class="btn btn-primary">Generar Factura Final</a>
+                <a href="{{ route('factura.create', $orden->nro) }}" class="btn btn-primary">Generar Factura Final</a>
                 @endif
             @endif
         </div>

@@ -38,4 +38,49 @@ class Factura extends Model
     {
         return $this->hasMany(Cuota::class, 'nro_factura', 'nro');
     }
+
+    public static function guardarFactura(OrdenTrabajo $orden, string $nit, string $nombre): self
+    {
+        $factura = self::create([
+            'nro_orden_trabajo' => $orden->nro,
+            'fecha_emision'     => now(),
+            'nit'               => $nit,
+            'nombre'            => $nombre,
+            'total'             => $orden->total_real,
+            'plazo'             => null,
+        ]);
+
+        $factura->guardarDetalle($orden->detallesRepuesto, $orden->detallesTrabajo);
+
+        return $factura;
+    }
+
+    public function guardarDetalle($detallesRepuesto, $detallesTrabajo): void
+    {
+        $siguienteId = 1;
+
+        foreach ($detallesRepuesto as $dr) {
+            DetalleFactura::create([
+                'nro_factura'     => $this->nro,
+                'id'              => $siguienteId++,
+                'descripcion'     => $dr->repuesto->nombre,
+                'tipo'            => 'Repuesto',
+                'cantidad'        => $dr->cantidad,
+                'precio_unitario' => $dr->precio_unitario,
+                'precio'          => $dr->cantidad * $dr->precio_unitario * (1 - $dr->descuento / 100),
+            ]);
+        }
+
+        foreach ($detallesTrabajo as $dt) {
+            DetalleFactura::create([
+                'nro_factura'     => $this->nro,
+                'id'              => $siguienteId++,
+                'descripcion'     => $dt->manoObra->descripcion,
+                'tipo'            => 'Mano de Obra',
+                'cantidad'        => $dt->cantidad,
+                'precio_unitario' => $dt->costo,
+                'precio'          => $dt->cantidad * $dt->costo,
+            ]);
+        }
+    }
 }
