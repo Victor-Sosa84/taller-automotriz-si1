@@ -23,7 +23,7 @@
                 <tr>
                     <th>Personal</th>
                     <th>Mano de Obra</th>
-                    <th>Tipo de Participación</th>
+                    <th style="text-align:center;">Tipo de Participación</th>
                     @if($orden->puede_editarse)
                     <th style="text-align:center;">Acciones</th>
                     @endif
@@ -34,12 +34,19 @@
                 <tr style="vertical-align:middle;">
                     <td>{{ $asignacion->persona->nombre ?? '—' }}</td>
                     <td>{{ $asignacion->manoObra->descripcion ?? '—' }}</td>
-                    <td>{{ $asignacion->tipo_participacion ?? '—' }}</td>
+                    <td style="text-align: center">{{ $asignacion->tipo_participacion ?? '—' }}</td>
                     @if($orden->puede_editarse)
                     <td style="text-align:center;">
                         @if(auth()->user()->puede('CU15_MOD') && $orden->puede_editarse)
                         <button onclick="abrirEditar('{{ $asignacion->ci_personal }}', {{ $asignacion->id_mano_obra }}, '{{ $asignacion->tipo_participacion }}')"
                             class="btn btn-sm btn-ghost">Editar</button>
+                        @endif
+                        @if(auth()->user()->puede('CU15_DEL') && $orden->puede_editarse)
+                        <form method="POST" action="{{ route('asignacion.destroy', [$orden->nro, $asignacion->ci_personal, $asignacion->id_mano_obra]) }}" style="display:inline;"
+                            onsubmit="return confirm('¿Eliminar esta asignación?')">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                        </form>
                         @endif
                     </td>
                     @endif
@@ -55,47 +62,53 @@
 
     {{-- Formulario nueva asignación --}}
     @if(auth()->user()->puede('CU15_ADD') && $orden->puede_editarse)
-    <div class="form-card" style="margin-bottom:1.5rem;">
-        <div style="margin-bottom:1.25rem;">
-            <span style="font-family:'Barlow Condensed',sans-serif; font-size:1rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em;">Nueva Asignación</span>
+        @if($orden->detallesTrabajo->isNotEmpty())
+        <div class="form-card" style="margin-bottom:1.5rem;">
+            <div style="margin-bottom:1.25rem;">
+                <span style="font-family:'Barlow Condensed',sans-serif; font-size:1rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em;">Nueva Asignación</span>
+            </div>
+            <form action="{{ route('asignacion.store', $orden->nro) }}" method="POST">
+                @csrf
+                <div class="form-grid">
+                    <div class="field-group">
+                        <label for="ci_personal">Personal <span class="req">*</span></label>
+                        <select id="ci_personal" name="ci_personal">
+                            <option value="">Seleccionar...</option>
+                            @foreach($personal as $p)
+                            <option value="{{ $p->ci }}" {{ old('ci_personal') == $p->ci ? 'selected' : '' }}>
+                                {{ $p->nombre }} ({{ $p->ci }})
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label for="id_mano_obra">Mano de Obra <span class="req">*</span></label>
+                        <select id="id_mano_obra" name="id_mano_obra">
+                            <option value="">Seleccionar...</option>
+                            @foreach($orden->detallesTrabajo as $dt)
+                            <option value="{{ $dt->id_mano_obra }}" {{ old('id_mano_obra') == $dt->id_mano_obra ? 'selected' : '' }}>
+                                {{ $dt->manoObra->descripcion }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="field-group" style="grid-column:1 / -1;">
+                        <label for="tipo_participacion">Tipo de Participación</label>
+                        <input id="tipo_participacion" name="tipo_participacion" type="text"
+                            value="{{ old('tipo_participacion') }}"
+                            placeholder="Ej. Mecánico principal, Asistente..." />
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Registrar Asignación</button>
+                </div>
+            </form>
         </div>
-        <form action="{{ route('asignacion.store', $orden->nro) }}" method="POST">
-            @csrf
-            <div class="form-grid">
-                <div class="field-group">
-                    <label for="ci_personal">Personal <span class="req">*</span></label>
-                    <select id="ci_personal" name="ci_personal">
-                        <option value="">Seleccionar...</option>
-                        @foreach($personal as $p)
-                        <option value="{{ $p->ci }}" {{ old('ci_personal') == $p->ci ? 'selected' : '' }}>
-                            {{ $p->nombre }} ({{ $p->ci }})
-                        </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="field-group">
-                    <label for="id_mano_obra">Mano de Obra <span class="req">*</span></label>
-                    <select id="id_mano_obra" name="id_mano_obra">
-                        <option value="">Seleccionar...</option>
-                        @foreach($servicios as $s)
-                        <option value="{{ $s->id }}" {{ old('id_mano_obra') == $s->id ? 'selected' : '' }}>
-                            {{ $s->descripcion }}
-                        </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="field-group" style="grid-column:1 / -1;">
-                    <label for="tipo_participacion">Tipo de Participación</label>
-                    <input id="tipo_participacion" name="tipo_participacion" type="text"
-                        value="{{ old('tipo_participacion') }}"
-                        placeholder="Ej. Mecánico principal, Asistente..." />
-                </div>
-            </div>
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Registrar Asignación</button>
-            </div>
-        </form>
-    </div>
+        @else
+        <div class="form-card" style="text-align:center; color:var(--muted);">
+            Registra al menos un servicio de mano de obra en la orden antes de asignar responsables.
+        </div>
+        @endif
     @endif
 </div>
 

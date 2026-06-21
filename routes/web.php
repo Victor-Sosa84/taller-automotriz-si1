@@ -134,6 +134,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/ordenes/{nro}/asignaciones', [AsignacionController::class, 'obtenerAsignaciones'])->name('asignacion.index')->middleware('permiso:CU15_BUS');
     Route::post('/ordenes/{nro}/asignaciones', [AsignacionController::class, 'registrarAsignacion'])->name('asignacion.store')->middleware('permiso:CU15_ADD');
     Route::put('/ordenes/{nro}/asignaciones/{ci}/{idManoObra}', [AsignacionController::class, 'actualizarAsignacion'])->name('asignacion.update')->middleware('permiso:CU15_MOD');
+    Route::delete('/ordenes/{nro}/asignaciones/{ci}/{idManoObra}', [AsignacionController::class, 'eliminarAsignacion'])->name('asignacion.destroy')->middleware('permiso:CU15_DEL');
     
     // ── CU-16 Registrar repuestos y mano de obra ─────────────────────────────────────
     Route::get('/ordenes/{nro}/detalles', [DetalleOTController::class, 'obtenerDetalles'])->name('detalle_ot.index')->middleware('permiso:CU16_BUS');

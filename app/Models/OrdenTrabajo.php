@@ -72,4 +72,9 @@ class OrdenTrabajo extends Model
     {
         return $this->detallesRepuesto->isNotEmpty() || $this->detallesTrabajo->isNotEmpty();
     }
+
+    public function getTodosLosTrabajosCompletadosAttribute(): bool
+    {
+        return $this->detallesTrabajo->every(fn($dt) => $dt->estado === 'Completado');
+    }
 }

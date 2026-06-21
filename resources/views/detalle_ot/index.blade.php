@@ -141,7 +141,7 @@
                         <select id="id_repuesto" name="id_repuesto">
                             <option value="">Seleccionar...</option>
                             @foreach($repuestos as $r)
-                            <option value="{{ $r->id }}">{{ $r->nombre }} ({{ $r->marca }})</option>
+                            <option value="{{ $r->id }}" data-precio="{{ $r->precio_referencial ?? '' }}">{{ $r->nombre }} ({{ $r->marca }})</option>
                             @endforeach
                         </select>
                     </div>
@@ -151,7 +151,7 @@
                     </div>
                     <div class="field-group">
                         <label for="cantidad_rep">Cantidad <span class="req">*</span></label>
-                        <input id="cantidad_rep" name="cantidad" type="number" min="1" placeholder="1" />
+                        <input id="cantidad_rep" name="cantidad" type="number" min="1" value="1" />
                     </div>
                     <div class="field-group">
                         <label for="descuento">Descuento (%)</label>
@@ -167,7 +167,7 @@
                             <select id="id_mano_obra" name="id_mano_obra">
                                 <option value="">Seleccionar...</option>
                                 @foreach($servicios as $s)
-                                <option value="{{ $s->id }}">{{ $s->descripcion }}</option>
+                                <option value="{{ $s->id }}" data-costo="{{ $s->costo_referencial ?? '' }}">{{ $s->descripcion }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -177,7 +177,7 @@
                         </div>
                         <div class="field-group">
                             <label for="cantidad_mo">Cantidad <span class="req">*</span></label>
-                            <input id="cantidad_mo" type="number" min="1" placeholder="1" />
+                            <input id="cantidad_mo" type="number" min="1" value="1" />
                         </div>
                         <div class="field-group">
                             <label for="estado_mo">Estado</label>
@@ -303,5 +303,15 @@ function abrirEditarMO(id, cantidad, costo, estado) {
 function cerrarModal(id) {
     document.getElementById(id).style.display = 'none';
 }
+
+document.getElementById('id_repuesto').addEventListener('change', function() {
+    const precio = this.options[this.selectedIndex].dataset.precio;
+    document.getElementById('precio_unitario').value = precio || '';
+});
+
+document.getElementById('id_mano_obra').addEventListener('change', function() {
+    const costo = this.options[this.selectedIndex].dataset.costo;
+    document.getElementById('costo').value = costo || '';
+});
 </script>
 @endpush

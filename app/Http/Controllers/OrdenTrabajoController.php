@@ -78,6 +78,10 @@ class OrdenTrabajoController extends Controller
             return redirect()->back()->with('error', 'No se puede finalizar una orden sin repuestos ni mano de obra registrados.');
         }
 
+        if ($request->estado === 'Finalizada' && !$orden->todos_los_trabajos_completados) {
+            return redirect()->back()->with('error', 'No se puede finalizar la orden: hay servicios pendientes o en proceso.');
+        }
+
         $request->validate([
             'estado'             => ['required', 'string', 'in:Finalizada,Anulada'],
             'observacion_salida' => ['nullable', 'string', 'max:1000'],

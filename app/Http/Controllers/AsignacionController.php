@@ -7,15 +7,15 @@ use App\Models\OrdenTrabajo;
 use App\Models\Persona;
 use App\Models\Realiza;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class AsignacionController extends Controller
 {
     public function obtenerAsignaciones(int $nro)
     {
-        $orden = OrdenTrabajo::with(['realiza.persona', 'realiza.manoObra'])->findOrFail($nro);
+        $orden = OrdenTrabajo::with(['realiza.persona', 'realiza.manoObra', 'detallesTrabajo.manoObra'])->findOrFail($nro);
         $personal = Persona::where('es_personal', true)->get();
-        $servicios = ManoObra::orderBy('descripcion')->get();
-        return view('asignacion.index', compact('orden', 'personal', 'servicios'));
+        return view('asignacion.index', compact('orden', 'personal'));
     }
 
     public function registrarAsignacion(Request $request, int $nro)
@@ -27,7 +27,11 @@ class AsignacionController extends Controller
 
         $request->validate([
             'ci_personal'        => ['required', 'string', 'exists:persona,ci'],
-            'id_mano_obra'       => ['required', 'integer', 'exists:mano_obra,id'],
+            'id_mano_obra'       => [
+                'required',
+                'integer',
+                Rule::exists('detalle_trabajo', 'id_mano_obra')->where('nro_orden_trabajo', $nro),
+            ],
             'tipo_participacion' => ['nullable', 'string', 'max:100'],
         ]);
 
@@ -64,5 +68,23 @@ class AsignacionController extends Controller
 
         return redirect()->route('asignacion.index', $nro)
                         ->with('success', 'Asignación actualizada correctamente.');
+    }
+
+    public function eliminarAsignacion(int $nro, string $ci, int $idManoObra)
+    {
+        $orden = OrdenTrabajo::findOrFail($nro);
+        if (!$orden->puede_editarse) {
+            return redirect()->back()->with('error', 'No se puede eliminar una asignación de una orden de trabajo finalizada.');
+        }
+
+        Realiza::where('nro_orden_trabajo', $nro)
+                ->where('ci_personal', $ci)
+                ->where('id_mano_obra', $idManoObra)
+                ->delete();
+
+        Bitacora::registrar('Eliminar Asignación', "OT #{$nro} - Personal: {$ci}");
+
+        return redirect()->route('asignacion.index', $nro)
+                        ->with('success', 'Asignación eliminada correctamente.');
     }
 }
