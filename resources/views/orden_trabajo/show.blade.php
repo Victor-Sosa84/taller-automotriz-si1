@@ -57,7 +57,7 @@
             </div>
 
             <div class="field-group">
-                <label>Total Aproximado</label>
+                <label>Total Proforma</label>
                 <p style="margin:0;">{{ $orden->proforma ? 'Bs. ' . number_format($orden->proforma->total_aprox, 2) : '—' }}</p>
             </div>
 
