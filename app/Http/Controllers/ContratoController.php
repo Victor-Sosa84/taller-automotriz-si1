@@ -14,7 +14,10 @@ class ContratoController extends Controller
     public function listarContratos()
     {
         // Se obtienen todos los contratos con sus relaciones para la vista
-        $contratos = Contrato::with(['personal', 'modalidadRemuneracion'])->get();
+        $contratos = Contrato::with(['personal', 'modalidadRemuneracion'])
+        ->orderBy('id', 'desc') // <--- Esta es la magia que lo pone al inicio
+        ->get();
+
         $personalDisponible = Persona::where('es_personal', true)->get();
         $tiposRemuneracion = TipoRemuneracion::all();
 
@@ -22,6 +25,7 @@ class ContratoController extends Controller
     }
 
     // +crearContrato()
+
     public function crearContrato(Request $request)
     {
         $request->validate([
@@ -80,6 +84,7 @@ class ContratoController extends Controller
 
         return redirect()->route('contratos.index')->with('success', 'Contrato actualizado correctamente.');
     }
+
 
     // +darBajaContrato()
     public function darBajaContrato($id)

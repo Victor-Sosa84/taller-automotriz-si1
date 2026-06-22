@@ -24,6 +24,12 @@ class DatabaseSeeder extends Seeder
             RolPersonalSeeder::class,      // roles Mecánico/Recepcionista — depende de permiso
             PersonalSeeder::class,         // personal de prueba — depende de tipo_trabajador
             UsuarioPersonalSeeder::class,  // usuarios del personal — depende de rol + persona
+
+
+            ContratoSeeder::class,         // contratos de prueba — depende de persona + tipo_remuneracion
+            PagoSeeder::class,             // pagos de prueba — depende de contrato + realiza   
+
         ]);
+
     }
 }

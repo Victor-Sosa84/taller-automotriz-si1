@@ -185,3 +185,26 @@ Route::middleware(['auth'])->group(function () {
     });
 
 require __DIR__.'/auth.php';
+
+use App\Http\Controllers\ContratoController;
+use App\Http\Controllers\PagoController;
+
+// =========================================================================
+// RUTAS PARA EL CICLO #4: GESTIÓN LABORAL Y LIQUIDACIONES (JECOES Tronic)
+// =========================================================================
+
+// CU-11: Gestionar Contratos de Trabajo
+Route::controller(ContratoController::class)->group(function () {
+    Route::get('/contratos', 'listarContratos')->name('contratos.index');
+    Route::post('/contratos/guardar', 'crearContrato')->name('contratos.store');
+    Route::get('/contratos/{id}/ver', 'verContrato')->name('contratos.show');
+    Route::post('/contratos/{id}/actualizar', 'actualizarContrato')->name('contratos.update');
+    Route::post('/contratos/{id}/baja', 'darBajaContrato')->name('contratos.baja');
+});
+
+// CU-12: Liquidar Pagos de Personal
+Route::controller(PagoController::class)->group(function () {
+    Route::get('/pagos', 'listarPagos')->name('pagos.index');
+    Route::get('/pagos/{id_contrato}/calcular', 'calcularPago')->name('pagos.calculate');
+    Route::post('/pagos/guardar', 'mostrarPago')->name('pagos.store'); // Este procesa el envío de la liquidación
+});
