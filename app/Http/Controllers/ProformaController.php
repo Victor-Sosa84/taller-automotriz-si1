@@ -82,6 +82,33 @@ class ProformaController extends Controller
     }
 
     // Ver proforma con detalle
+    public function buscarProformaPorNumero(int $nro)
+    {
+        $proforma = Proforma::with('repuestos.repuesto', 'servicios.manoObra', 'diagnostico.auto', 'cliente')
+            ->find($nro);
+
+        if (!$proforma) {
+            return null;
+        }
+
+        return [
+            'nro'           => $proforma->nro,
+            'fecha'         => $proforma->fecha->format('Y-m-d'),
+            'estado'        => $proforma->estado_visual,
+            'total_aprox'   => $proforma->total_aprox,
+            'cliente'       => $proforma->cliente?->nombre,
+            'placa_auto'    => $proforma->diagnostico?->auto?->placa,
+            'repuestos'     => $proforma->repuestos->map(fn ($r) => [
+                'nombre'    => $r->repuesto->nombre,
+                'cantidad'  => $r->cantidad,
+            ]),
+            'servicios'     => $proforma->servicios->map(fn ($s) => [
+                'descripcion' => $s->manoObra->descripcion,
+                'cantidad'    => $s->cantidad,
+            ]),
+        ];
+    }
+
     public function show(Proforma $proforma)
     {
         $proforma->load('repuestos.repuesto', 'servicios.manoObra', 'diagnostico.auto', 'cliente');
@@ -259,6 +286,48 @@ class ProformaController extends Controller
 
         $proformas = $query->paginate(15)->withQueryString();
         return view('proforma.index', compact('proformas'));
+    }
+
+    public function buscarProformasPorEstado(?string $estado = null, ?string $desde = null, ?string $hasta = null, ?string $placa = null)
+    {
+        $query = Proforma::with('diagnostico.auto')->latest('fecha');
+
+        if ($estado === 'Vencida') {
+            $query->whereIn('estado', ['Emitida', 'Observada'])
+                ->whereDate('plazo', '<', now());
+        } elseif (in_array($estado, ['Emitida', 'Observada'])) {
+            $query->where('estado', $estado)
+                ->where(function ($q) {
+                    $q->whereNull('plazo')
+                        ->orWhereDate('plazo', '>=', now());
+                });
+        } elseif ($estado) {
+            $query->where('estado', $estado);
+        }
+        if ($desde) {
+            $query->whereDate('fecha', '>=', $desde);
+        }
+        if ($hasta) {
+            $query->whereDate('fecha', '<=', $hasta);
+        }
+        if ($placa) {
+            $query->whereHas('diagnostico.auto', function ($q) use ($placa) {
+                $q->where('placa', 'like', '%' . $placa . '%');
+            });
+        }
+
+        $proformas = $query->limit(50)->get();
+
+        return [
+            'cantidad'   => $proformas->count(),
+            'proformas'  => $proformas->map(fn ($p) => [
+                'nro'         => $p->nro,
+                'fecha'       => $p->fecha->format('Y-m-d'),
+                'estado'      => $p->estado_visual,
+                'total_aprox' => $p->total_aprox,
+                'placa_auto'  => $p->diagnostico?->auto?->placa,
+            ]),
+        ];
     }
 
     public function pdf(Proforma $proforma)

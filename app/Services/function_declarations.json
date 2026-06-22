@@ -1,0 +1,242 @@
+{
+  "functionDeclarations": [
+    {
+      "name": "buscarProformasPorEstado",
+      "description": "Busca proformas (cotizaciones) filtradas opcionalmente por estado, rango de fechas o placa de vehículo.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "estado": {
+            "type": "string",
+            "enum": [
+              "Borrador",
+              "Emitida",
+              "Aprobada",
+              "Observada",
+              "Anulada",
+              "Vencida"
+            ],
+            "description": "Estado de la proforma a filtrar."
+          },
+          "desde": {
+            "type": "string",
+            "description": "Fecha inicial (YYYY-MM-DD)."
+          },
+          "hasta": {
+            "type": "string",
+            "description": "Fecha final (YYYY-MM-DD)."
+          },
+          "placa": {
+            "type": "string",
+            "description": "Placa del vehículo, búsqueda parcial."
+          }
+        }
+      }
+    },
+    {
+      "name": "buscarProformaPorNumero",
+      "description": "Obtiene el detalle completo de una proforma específica por su número.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "nro": {
+            "type": "integer",
+            "description": "Número de la proforma."
+          }
+        },
+        "required": [
+          "nro"
+        ]
+      }
+    },
+    {
+      "name": "buscarFacturasPorPeriodo",
+      "description": "Obtiene el total facturado y la lista de facturas emitidas en un rango de fechas.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "desde": {
+            "type": "string",
+            "description": "Fecha inicial (YYYY-MM-DD)."
+          },
+          "hasta": {
+            "type": "string",
+            "description": "Fecha final (YYYY-MM-DD)."
+          }
+        }
+      }
+    },
+    {
+      "name": "buscarFacturaPorNumero",
+      "description": "Obtiene el detalle completo de una factura específica por su número.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "nro": {
+            "type": "integer",
+            "description": "Número de la factura."
+          }
+        },
+        "required": [
+          "nro"
+        ]
+      }
+    },
+    {
+      "name": "buscarCuotasPendientes",
+      "description": "Obtiene las facturas con saldo pendiente de pago, opcionalmente en un rango de fechas.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "desde": {
+            "type": "string",
+            "description": "Fecha inicial de la factura (YYYY-MM-DD)."
+          },
+          "hasta": {
+            "type": "string",
+            "description": "Fecha final de la factura (YYYY-MM-DD)."
+          }
+        }
+      }
+    },
+    {
+      "name": "buscarOrdenesPorEstado",
+      "description": "Busca órdenes de trabajo filtradas opcionalmente por estado.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "estado": {
+            "type": "string",
+            "enum": [
+              "Pendiente de Diagnóstico",
+              "Diagnóstico Finalizado",
+              "En Proceso",
+              "Finalizada",
+              "Anulada"
+            ],
+            "description": "Estado de la orden de trabajo a filtrar."
+          }
+        }
+      }
+    },
+    {
+      "name": "buscarPrestamos",
+      "description": "Busca préstamos de herramientas, opcionalmente solo los pendientes de devolución.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "soloPendientes": {
+            "type": "boolean",
+            "description": "Si es true, solo trae préstamos sin fecha de devolución registrada."
+          }
+        }
+      }
+    },
+    {
+      "name": "buscarAsignacionesPorOrden",
+      "description": "Obtiene las asignaciones de personal a una orden de trabajo específica.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "nro": {
+            "type": "integer",
+            "description": "Número de la orden de trabajo."
+          }
+        },
+        "required": [
+          "nro"
+        ]
+      }
+    },
+    {
+      "name": "buscarDiagnosticosPorPeriodo",
+      "description": "Busca diagnósticos técnicos en un rango de fechas, opcionalmente filtrados por placa de vehículo.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "desde": {
+            "type": "string",
+            "description": "Fecha inicial (YYYY-MM-DD)."
+          },
+          "hasta": {
+            "type": "string",
+            "description": "Fecha final (YYYY-MM-DD)."
+          },
+          "placa": {
+            "type": "string",
+            "description": "Placa del vehículo, búsqueda parcial."
+          }
+        }
+      }
+    },
+    {
+      "name": "buscarCatalogo",
+      "description": "Busca en el catálogo del taller: repuestos, mano de obra o herramientas.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "repuesto",
+              "mano_obra",
+              "herramienta"
+            ],
+            "description": "Tipo de catálogo a consultar. Si se omite, busca en los tres."
+          },
+          "nombre": {
+            "type": "string",
+            "description": "Texto de búsqueda parcial por nombre o descripción."
+          }
+        }
+      }
+    },
+    {
+      "name": "buscarAutosCatalogo",
+      "description": "Busca vehículos registrados por placa, marca o modelo.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "busqueda": {
+            "type": "string",
+            "description": "Texto de búsqueda parcial (placa, marca o modelo)."
+          }
+        }
+      }
+    },
+    {
+      "name": "buscarTiposTrabajadorCatalogo",
+      "description": "Lista los tipos de trabajador (cargos) disponibles en el sistema.",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "contarClientesPorZona",
+      "description": "Cuenta cuántos clientes hay registrados, opcionalmente filtrado por una zona o referencia de dirección. No devuelve nombres ni datos individuales, solo el total.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "zona": {
+            "type": "string",
+            "description": "Texto de búsqueda parcial sobre la dirección del cliente."
+          }
+        }
+      }
+    },
+    {
+      "name": "contarPersonalPorTipoTrabajador",
+      "description": "Cuenta cuánto personal hay por cada tipo de trabajador (cargo), opcionalmente filtrado por un tipo específico. No devuelve nombres ni datos individuales, solo totales.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tipoDescripcion": {
+            "type": "string",
+            "description": "Texto de búsqueda parcial sobre la descripción del tipo de trabajador."
+          }
+        }
+      }
+    }
+  ]
+}

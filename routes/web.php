@@ -20,6 +20,7 @@ use App\Http\Controllers\PrestamoController;
 use App\Http\Controllers\HerramientaController;
 use App\Http\Controllers\FacturaController;
 use App\Http\Controllers\CuotaController;
+use App\Http\Controllers\ReporteController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -178,6 +179,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/facturas/{nro}/pago', [CuotaController::class, 'mostrarPago'])->name('cuota.create')->middleware('permiso:CU18_ADD');
     Route::post('/facturas/{nro}/pago', [CuotaController::class, 'registrarPago'])->name('cuota.store')->middleware('permiso:CU18_ADD');
     Route::post('/api/cuota/intento-pago', [CuotaController::class, 'crearIntentoPago'])->name('api.cuota.intento_pago');
+
+    // ── CU-22 Generar reportes por comando de voz ──────────────────────────
+    Route::post('/api/reporte/consultar', [ReporteController::class, 'consultarReporte'])->name('api.reporte.consultar')->middleware('permiso:CU22_GEN');
     });
 
 require __DIR__.'/auth.php';

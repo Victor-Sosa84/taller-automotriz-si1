@@ -21,6 +21,44 @@ class CatalogoController extends Controller
         return view('catalogo.taller', compact('repuestos', 'servicios', 'herramientas', 'tipos', 'marcas'));
     }
 
+    public function buscarCatalogo(?string $tipo = null, ?string $nombre = null)
+    {
+        $resultado = [];
+
+        if (!$tipo || $tipo === 'repuesto') {
+            $query = Repuesto::query();
+            if ($nombre) {
+                $query->where('nombre', 'like', '%' . $nombre . '%');
+            }
+            $resultado['repuestos'] = $query->orderBy('nombre')->limit(50)->get(['id', 'nombre', 'marca', 'estado', 'precio_referencial']);
+        }
+
+        if (!$tipo || $tipo === 'mano_obra') {
+            $query = ManoObra::query();
+            if ($nombre) {
+                $query->where('descripcion', 'like', '%' . $nombre . '%');
+            }
+            $resultado['mano_obra'] = $query->orderBy('descripcion')->limit(50)->get(['id', 'descripcion', 'costo_referencial']);
+        }
+
+        if (!$tipo || $tipo === 'herramienta') {
+            $query = Herramienta::with(['tipo', 'marca']);
+            if ($nombre) {
+                $query->where('descripcion', 'like', '%' . $nombre . '%');
+            }
+            $resultado['herramientas'] = $query->orderBy('nro')->limit(50)->get()->map(fn ($h) => [
+                'nro'         => $h->nro,
+                'descripcion' => $h->descripcion,
+                'tipo'        => $h->tipo?->descripcion,
+                'marca'       => $h->marca?->nombre,
+                'estado'      => $h->estado,
+                'disponible'  => $h->disponible,
+            ]);
+        }
+
+        return $resultado;
+    }
+
     // Repuesto
     public function storeRepuesto(Request $request)
     {

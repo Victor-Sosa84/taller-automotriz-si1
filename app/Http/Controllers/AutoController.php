@@ -27,6 +27,26 @@ class AutoController extends Controller
         return view('autos.index', compact('autos'));
     }
 
+    public function buscarAutosCatalogo(?string $busqueda = null)
+    {
+        $query = Auto::query();
+
+        if ($busqueda) {
+            $query->where(function ($q) use ($busqueda) {
+                $q->where('placa',  'like', "%{$busqueda}%")
+                    ->orWhere('marca',  'like', "%{$busqueda}%")
+                    ->orWhere('modelo', 'like', "%{$busqueda}%");
+            });
+        }
+
+        $autos = $query->orderBy('placa')->limit(50)->get(['placa', 'marca', 'modelo', 'color', 'tipo']);
+
+        return [
+            'cantidad' => $autos->count(),
+            'autos'    => $autos,
+        ];
+    }
+
     public function create(Request $request)
     {
         $redirect = $request->query('redirect'); // 'ingreso' o null

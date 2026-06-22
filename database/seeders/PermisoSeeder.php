@@ -84,6 +84,7 @@ class PermisoSeeder extends Seeder
             ['id' => 54, 'nombre' => 'CU16_ADD', 'etiqueta' => 'Registrar Repuesto/Mano Obra','caso_uso' => 'CU-16', 'paquete' => 'P4: Gestión Operativa'],
             ['id' => 55, 'nombre' => 'CU16_BUS', 'etiqueta' => 'Ver Repuestos/Mano de Obra',  'caso_uso' => 'CU-16', 'paquete' => 'P4: Gestión Operativa'],
             ['id' => 56, 'nombre' => 'CU16_MOD', 'etiqueta' => 'Modificar Repuesto/Mano Obra','caso_uso' => 'CU-16', 'paquete' => 'P4: Gestión Operativa'],
+            ['id' => 57, 'nombre' => 'CU22_GEN', 'etiqueta' => 'Generar Reporte por Voz',    'caso_uso' => 'CU-22', 'paquete' => 'P4: Gestión Operativa'],
         ];
 
         DB::table('permiso')->insertOrIgnore($permisos);

@@ -9,6 +9,29 @@ use Illuminate\Http\Request;
 
 class CargoController extends Controller
 {
+    public function buscarTiposTrabajadorCatalogo()
+    {
+        return [
+            'tipos' => TipoTrabajador::orderBy('descripcion')->get(['id', 'descripcion']),
+        ];
+    }
+
+    public function contarPersonalPorTipoTrabajador(?string $tipoDescripcion = null)
+    {
+        $query = TipoTrabajador::query();
+
+        if ($tipoDescripcion) {
+            $query->where('descripcion', 'like', '%' . $tipoDescripcion . '%');
+        }
+
+        return [
+            'tipos' => $query->get()->map(fn ($t) => [
+                'descripcion' => $t->descripcion,
+                'cantidad'    => $t->personal()->count(),
+            ]),
+        ];
+    }
+
     // ── INDEX — ver cargos de un usuario ─────────────────────────
     public function index(int $idUsuario)
     {

@@ -18,6 +18,24 @@ class AsignacionController extends Controller
         return view('asignacion.index', compact('orden', 'personal'));
     }
 
+    public function buscarAsignacionesPorOrden(int $nro)
+    {
+        $orden = OrdenTrabajo::with(['realiza.persona', 'realiza.manoObra'])->find($nro);
+
+        if (!$orden) {
+            return null;
+        }
+
+        return [
+            'nro_orden'    => $orden->nro,
+            'asignaciones' => $orden->realiza->map(fn ($r) => [
+                'personal'           => $r->persona?->nombre,
+                'mano_obra'          => $r->manoObra?->descripcion,
+                'tipo_participacion' => $r->tipo_participacion,
+            ]),
+        ];
+    }
+
     public function registrarAsignacion(Request $request, int $nro)
     {
         $orden = OrdenTrabajo::findOrFail($nro);

@@ -16,6 +16,27 @@ class PrestamoController extends Controller
         return view('prestamo.index', compact('prestamos', 'herramientas'));
     }
 
+    public function buscarPrestamos(bool $soloPendientes = false)
+    {
+        $query = PrestamoHerramienta::with(['detalles.herramienta'])->orderBy('id', 'desc');
+
+        if ($soloPendientes) {
+            $query->whereNull('fecha_devolucion');
+        }
+
+        $prestamos = $query->limit(50)->get();
+
+        return [
+            'cantidad'  => $prestamos->count(),
+            'prestamos' => $prestamos->map(fn ($p) => [
+                'id'               => $p->id,
+                'fecha_salida'     => $p->fecha_salida?->format('Y-m-d'),
+                'fecha_devolucion' => $p->fecha_devolucion?->format('Y-m-d'),
+                'herramientas'     => $p->detalles->map(fn ($d) => $d->herramienta?->descripcion),
+            ]),
+        ];
+    }
+
     public function registrarPrestamos(Request $request)
     {
         $request->validate([

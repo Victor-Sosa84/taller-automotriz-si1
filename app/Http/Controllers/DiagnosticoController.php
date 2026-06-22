@@ -64,4 +64,33 @@ class DiagnosticoController extends Controller
         $from = request()->query('from');
         return view('diagnostico.show', compact('diagnostico', 'from'));
     }
+
+    public function buscarDiagnosticosPorPeriodo(?string $desde = null, ?string $hasta = null, ?string $placa = null)
+    {
+        $query = Diagnostico::with(['auto', 'persona', 'detalles'])->latest('fecha');
+
+        if ($desde) {
+            $query->whereDate('fecha', '>=', $desde);
+        }
+        if ($hasta) {
+            $query->whereDate('fecha', '<=', $hasta);
+        }
+        if ($placa) {
+            $query->where('placa_auto', 'like', '%' . $placa . '%');
+        }
+
+        $diagnosticos = $query->limit(50)->get();
+
+        return [
+            'cantidad'      => $diagnosticos->count(),
+            'diagnosticos'  => $diagnosticos->map(fn ($d) => [
+                'id'          => $d->id,
+                'fecha'       => $d->fecha->format('Y-m-d'),
+                'placa_auto'  => $d->placa_auto,
+                'tecnico'     => $d->persona?->nombre,
+                'descripcion' => $d->descripcion,
+                'fallas'      => $d->detalles->pluck('falla'),
+            ]),
+        ];
+    }
 }

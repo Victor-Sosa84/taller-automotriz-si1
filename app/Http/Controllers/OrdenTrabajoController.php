@@ -60,6 +60,29 @@ class OrdenTrabajoController extends Controller
         return view('orden_trabajo.index', compact('ordenes'));
     }
 
+    public function buscarOrdenesPorEstado(?string $estado = null)
+    {
+        $query = OrdenTrabajo::with(['proforma.cliente', 'auto'])->latest('fecha_inicio');
+
+        if ($estado) {
+            $query->where('estado', $estado);
+        }
+
+        $ordenes = $query->limit(50)->get();
+
+        return [
+            'cantidad' => $ordenes->count(),
+            'ordenes'  => $ordenes->map(fn ($o) => [
+                'nro'         => $o->nro,
+                'placa_auto'  => $o->auto?->placa,
+                'estado'      => $o->estado,
+                'fecha_inicio' => $o->fecha_inicio?->format('Y-m-d'),
+                'fecha_fin'   => $o->fecha_fin?->format('Y-m-d'),
+                'cliente'     => $o->proforma?->cliente?->nombre,
+            ]),
+        ];
+    }
+
     public function obtenerOrden(int $nro)
     {
         $orden = OrdenTrabajo::with(['proforma.cliente', 'auto'])->findOrFail($nro);

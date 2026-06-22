@@ -27,6 +27,7 @@ class RolPersonalSeeder extends Seeder
             'CU10_BUS',                                   // Ver estado de herramientas (idem)
             'CU14_BUS', 'CU14_EST',                        // Ver OT y cambiar estado — actor(es) incluye Mecánico
             'CU16_ADD', 'CU16_MOD', 'CU16_BUS',            // Repuestos/Mano de obra — actor iniciador
+            'CU22_GEN',                                     // Reportes por comando de voz — cualquier usuario autenticado
         ];
 
         $permisosRecepcionista = [
@@ -44,6 +45,7 @@ class RolPersonalSeeder extends Seeder
             'CU16_BUS',                                     // Ver repuestos/mano de obra — actor(es) incluye Recepcionista
             'CU17_GEN', 'CU17_BUS',                         // Generar factura — actor iniciador
             'CU18_ADD', 'CU18_BUS',                         // Pago y cuotas — actor iniciador
+            'CU22_GEN',                                     // Reportes por comando de voz — cualquier usuario autenticado
         ];
 
         $idsPorNombre = DB::table('permiso')

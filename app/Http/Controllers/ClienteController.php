@@ -25,6 +25,19 @@ class ClienteController extends Controller
         return view('clientes.index', compact('clientes'));
     }
 
+    public function contarClientesPorZona(?string $zona = null)
+    {
+        $query = Persona::where('es_cliente', true);
+
+        if ($zona) {
+            $query->where('direccion', 'like', '%' . $zona . '%');
+        }
+
+        return [
+            'cantidad' => $query->count(),
+        ];
+    }
+
     public function create(Request $request)
     {
         $redirect      = $request->query('redirect');

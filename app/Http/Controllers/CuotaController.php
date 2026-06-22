@@ -9,6 +9,32 @@ use Illuminate\Http\Request;
 
 class CuotaController extends Controller
 {
+    public function buscarCuotasPendientes(?string $desde = null, ?string $hasta = null)
+    {
+        $query = Factura::with('cuotas')->latest('fecha_emision');
+
+        if ($desde) {
+            $query->whereDate('fecha_emision', '>=', $desde);
+        }
+        if ($hasta) {
+            $query->whereDate('fecha_emision', '<=', $hasta);
+        }
+
+        $pendientes = $query->get()->filter(fn ($f) => $f->saldo_pendiente > 0);
+
+        return [
+            'total_pendiente' => $pendientes->sum('saldo_pendiente'),
+            'cantidad'        => $pendientes->count(),
+            'facturas'        => $pendientes->values()->map(fn ($f) => [
+                'nro_factura'     => $f->nro,
+                'fecha_emision'   => $f->fecha_emision->format('Y-m-d'),
+                'total'           => $f->total,
+                'saldo_pendiente' => $f->saldo_pendiente,
+                'plazo'           => $f->plazo?->format('Y-m-d'),
+            ]),
+        ];
+    }
+
     public function mostrarPago(int $nro)
     {
         $factura = Factura::with('cuotas')->findOrFail($nro);
