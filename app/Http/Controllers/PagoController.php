@@ -10,15 +10,22 @@ use Illuminate\Http\Request;
 
 class PagoController extends Controller
 {
+
     // +listarPagos()
     public function listarPagos()
     {
-        $pagos = Pago::with('contrato.personal')->get();
+        // Añadimos orderByDesc para ordenar del ID más alto (más reciente) al más bajo
+        $pagos = Pago::with('contrato.personal')->orderByDesc('id')->get();
+        
+        // O si prefieres ordenar estrictamente por la fecha en que se registró el pago:
+        // $pagos = Pago::with('contrato.personal')->orderByDesc('fecha_pago')->get();
+
         // Cargamos los contratos vigentes para poder liquidar desde la interfaz
         $contratosVigentes = Contrato::with('personal')->where('estado', 'Vigente')->get();
 
         return view('pagos.index', compact('pagos', 'contratosVigentes'));
     }
+
 
     // +calcularPago()
     public function calcularPago($id_contrato)

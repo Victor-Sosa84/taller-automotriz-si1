@@ -41,9 +41,10 @@
                 <tr>
                     <td class="td-muted" style="font-family:monospace;">#{{ $pago->id }}</td>
                     <td style="font-weight:600;">
-                        {{ $pago->contrato->personal->nombre }}
-                        <span class="td-muted" style="font-size:.75rem; font-family:monospace; display:block;">CI: {{
-                            $pago->contrato->ci_personal }}</span>
+                        {{ $pago->contrato->personal->nombre ?? 'N/A' }}
+                        <span class="td-muted" style="font-size:.75rem; font-family:monospace; display:block;">
+                            CI: {{ $pago->contrato->ci_personal ?? $pago->contrato->personal->ci ?? '' }}
+                        </span>
                     </td>
                     <td class="td-muted" style="font-family:monospace;">Contrato #{{ $pago->id_contrato }}</td>
                     <td>{{ \Carbon\Carbon::parse($pago->fecha_pago)->format('d/m/Y H:i') }}</td>
@@ -53,7 +54,7 @@
                             $pago->metodo ?? 'Efectivo' }}</span></td>
                     <td style="text-align:center;">
                         <button
-                            onclick="imprimirConstanciaDirecta({{ $pago->id }}, '{{ $pago->contrato->personal->nombre }}', '{{ $pago->monto }}')"
+                            onclick="imprimirConstanciaDirecta({{ $pago->id }}, '{{ $pago->contrato->personal->nombre ?? 'Empleado' }}', '{{ $pago->monto }}')"
                             class="btn btn-sm btn-ghost">🖨 Imprimir</button>
                     </td>
                 </tr>
@@ -86,8 +87,10 @@
                     <select name="id_contrato" id="id_contrato_select" required onchange="cargarPrecalculo(this.value)">
                         <option value="">-- Seleccione un Empleado con Contrato Activo --</option>
                         @foreach($contratosVigentes as $con)
-                        <option value="{{ $con->id }}">{{ $con->personal->nombre }} (Contrato #{{ $con->id }} - {{
-                            $con->periodo_pago }})</option>
+                        <option value="{{ $con->id }}">
+                            {{ $con->personal->nombre }} (Contrato #{{ $con->id }} - {{ $con->periodo_pago ?? 'Mensual'
+                            }})
+                        </option>
                         @endforeach
                     </select>
                 </div>
@@ -110,7 +113,8 @@
                     style="display:none; margin-top:.75rem; padding-top:.75rem; border-top:1px dashed var(--border);">
                     <p
                         style="font-size:.8rem; color:var(--muted); font-weight:600; text-transform:uppercase; margin-bottom:.5rem;">
-                        Trabajos del periodo (Tabla Realiza):</p>
+                        Trabajos del periodo (Tabla Realiza):
+                    </p>
                     <ul id="lista_trabajos"
                         style="font-size:.85rem; padding-left:1.2rem; color:var(--muted); display:flex; flex-direction:column; gap:.25rem;">
                     </ul>
@@ -130,7 +134,7 @@
             <div class="form-grid" style="margin-top:1.25rem;">
                 <div class="field-group">
                     <label>Tipo de Pago <span class="req">*</span></label>
-                    <select name="type" required>
+                    <select name="tipo" required>
                         <option value="Sueldo Mensual" selected>Sueldo Mensual</option>
                         <option value="Adelanto / Quincena">Adelanto / Quincena</option>
                         <option value="Liquidación Final">Liquidación Final</option>
@@ -160,6 +164,7 @@
     function abrirModalLiquidar() {
         document.getElementById('modalLiquidacion').style.display = 'flex';
     }
+    
     function cerrarModalLiquidar() {
         document.getElementById('modalLiquidacion').style.display = 'none';
         document.getElementById('area_calculo').style.display = 'none';
@@ -167,7 +172,7 @@
         document.getElementById('btn_guardar_pago').disabled = true;
     }
 
-    // Lógica asíncrona que invoca al controlador de pagos (CU-12)
+    // Lógica asíncrona que invoca al controlador de pagos
     function cargarPrecalculo(id_contrato) {
         if (!id_contrato) {
             document.getElementById('area_calculo').style.display = 'none';
@@ -179,21 +184,31 @@
             .then(res => res.json())
             .then(data => {
                 document.getElementById('area_calculo').style.display = 'block';
-                document.getElementById('calc_modalidad').innerText = data.contrato.modalidad_remuneracion.descripcion;
                 
-                let unidad = data.contrato.tipo_remuneracion == 1 ? 'Bs.' : '%';
-                document.getElementById('calc_base').innerText = `${parseFloat(data.contrato.valor).toFixed(2)} ${unidad}`;
+                // Validación del objeto de modalidad de remuneración
+                if (data.contrato && data.contrato.modalidad_remuneracion) {
+                    document.getElementById('calc_modalidad').innerText = data.contrato.modalidad_remuneracion.descripcion;
+                } else {
+                    document.getElementById('calc_modalidad').innerText = "Estipulado por Contrato";
+                }
+                
+                let unidad = (data.contrato && data.contrato.tipo_remuneracion == 1) ? 'Bs.' : '%';
+                let valorBase = data.contrato ? parseFloat(data.contrato.valor).toFixed(2) : '0.00';
+                
+                document.getElementById('calc_base').innerText = `${valorBase} ${unidad}`;
                 document.getElementById('calc_total').innerText = `${parseFloat(data.monto_calculado).toFixed(2)} Bs.`;
                 
                 let areaComision = document.getElementById('area_detalles_comision');
                 let listaTrabajos = document.getElementById('lista_trabajos');
                 listaTrabajos.innerHTML = "";
 
-                if (data.detalles.length > 0) {
+                if (data.detalles && data.detalles.length > 0) {
                     areaComision.style.display = 'block';
                     data.detalles.forEach(t => {
                         let li = document.createElement('li');
-                        li.innerHTML = `Orden OT #${t.order} - ${t.servicio} (Comisión: <span style="color:var(--success)">+${parseFloat(t.comision_calculada).toFixed(2)} Bs.</span>)`;
+                        // Se unifican posibles mapeos de índices ('orden' o 'order')
+                        let numeroOrden = t.orden || t.order || 'N/A';
+                        li.innerHTML = `Orden OT #${numeroOrden} - ${t.servicio} (Comisión: <span style="color:var(--success)">+${parseFloat(t.comision_calculada).toFixed(2)} Bs.</span>)`;
                         listaTrabajos.appendChild(li);
                     });
                 } else {
@@ -208,7 +223,7 @@
             });
     }
 
-    // Ventana automatizada lista para la recolección de firma física solicitada en el CU
+    // Ventana automatizada para impresión de constancia de firmas
     function imprimirConstanciaDirecta(id, nombre, monto) {
         let ventanaImpresion = window.open('', '_blank', 'width=800,height=600');
         ventanaImpresion.document.write(`
@@ -256,7 +271,7 @@
             imprimirConstanciaDirecta(
                 "{{ session('pago_id') }}", 
                 "Liquidación Reciente", 
-                "0"
+                "{{ session('monto_pago') ?? '0' }}"
             );
         });
     @endif
