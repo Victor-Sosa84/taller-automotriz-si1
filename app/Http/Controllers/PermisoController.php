@@ -15,11 +15,11 @@ class PermisoController extends Controller
         $roles = Rol::with('permisos')->get();
 
         $permisos = Permiso::orderBy('paquete')
-                           ->orderBy('caso_uso')
-                           ->orderBy('id')
-                           ->get()
-                           ->groupBy('paquete')
-                           ->map(fn($grupo) => $grupo->groupBy('caso_uso'));
+                        ->orderBy('caso_uso')
+                        ->orderBy('id')
+                        ->get()
+                        ->groupBy('paquete')
+                        ->map(fn($grupo) => $grupo->groupBy('caso_uso'));
 
         return view('permisos.index', compact('roles', 'permisos'));
     }
