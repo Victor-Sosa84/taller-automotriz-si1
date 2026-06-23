@@ -184,6 +184,7 @@ Route::middleware(['auth'])->group(function () {
 
     // ── CU-22 Generar reportes por comando de voz ──────────────────────────
     Route::post('/api/reporte/consultar', [ReporteController::class, 'consultarReporte'])->name('api.reporte.consultar')->middleware('permiso:CU22_GEN');
+    Route::post('/api/reporte/exportar', [ReporteController::class, 'exportarReporte'])->name('api.reporte.exportar')->middleware('permiso:CU22_GEN');
 
     // ── CU-11 Gestionar Contratos de Trabajo ───────────────────────────────
     Route::controller(ContratoController::class)->group(function () {
@@ -200,6 +201,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/pagos/{id_contrato}/calcular', 'calcularPago')->name('pagos.calculate')->middleware('permiso:CU12_BUS');
         Route::post('/pagos/guardar', 'mostrarPago')->name('pagos.store')->middleware('permiso:CU12_ADD'); // Este procesa el envío de la liquidación
     });
-});
+    });
 
 require __DIR__.'/auth.php';

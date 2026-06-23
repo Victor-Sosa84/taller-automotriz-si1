@@ -3,6 +3,42 @@
 
 @section('content')
 
+{{-- CU-22: Reportes por comando de voz --}}
+@if(auth()->user()->puede('CU22_GEN'))
+<div class="card" id="card-reporte-voz" style="margin-bottom:1.75rem;">
+    <div class="card-header">
+        <span class="card-title">🎙 Preguntá algo sobre el taller</span>
+    </div>
+    <div class="card-body">
+        <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+            <button id="btn-grabar-voz" type="button" class="btn btn-primary">
+                <span id="icono-grabar-voz">🎤</span>
+                <span id="texto-grabar-voz">Hablar</span>
+            </button>
+            <span id="estado-voz" style="color:var(--muted); font-size:.85rem;"></span>
+        </div>
+
+        <div id="resultado-voz-wrap" style="margin-top:1.25rem; display:none;">
+            <div style="margin-bottom:.75rem;">
+                <div style="font-size:.78rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:.3rem;">
+                    Entendí que preguntaste
+                </div>
+                <div id="texto-transcripcion" style="font-size:.95rem;"></div>
+            </div>
+
+            <div id="resultado-voz-contenido"></div>
+
+            <audio id="audio-respuesta-voz" controls style="width:100%; margin-top:1rem; display:none;"></audio>
+
+            <div id="acciones-exportar-voz" style="margin-top:1rem; display:none; gap:.5rem;">
+                <button type="button" class="btn btn-ghost btn-sm" id="btn-exportar-pdf">⬇ Exportar PDF</button>
+                <button type="button" class="btn btn-ghost btn-sm" id="btn-exportar-excel">⬇ Exportar Excel</button>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 <div style="margin-bottom:1.5rem;">
     <h2 style="font-family:'Barlow Condensed',sans-serif; font-size:1.8rem; font-weight:800; text-transform:uppercase;">
         Bienvenido, {{ auth()->user()->nombre_usuario }}
@@ -84,3 +120,7 @@
 @endif
 
 @endsection
+
+@push('scripts')
+<script src="{{ asset('js/reporte-voz.js') }}"></script>
+@endpush
