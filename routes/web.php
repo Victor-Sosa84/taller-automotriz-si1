@@ -21,6 +21,8 @@ use App\Http\Controllers\HerramientaController;
 use App\Http\Controllers\FacturaController;
 use App\Http\Controllers\CuotaController;
 use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\ContratoController;
+use App\Http\Controllers\PagoController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -182,29 +184,22 @@ Route::middleware(['auth'])->group(function () {
 
     // ── CU-22 Generar reportes por comando de voz ──────────────────────────
     Route::post('/api/reporte/consultar', [ReporteController::class, 'consultarReporte'])->name('api.reporte.consultar')->middleware('permiso:CU22_GEN');
+
+    // ── CU-11 Gestionar Contratos de Trabajo ───────────────────────────────
+    Route::controller(ContratoController::class)->group(function () {
+        Route::get('/contratos', 'listarContratos')->name('contratos.index')->middleware('permiso:CU11_BUS');
+        Route::post('/contratos/guardar', 'crearContrato')->name('contratos.store')->middleware('permiso:CU11_ADD');
+        Route::get('/contratos/{id}/ver', 'verContrato')->name('contratos.show')->middleware('permiso:CU11_BUS');
+        Route::post('/contratos/{id}/actualizar', 'actualizarContrato')->name('contratos.update')->middleware('permiso:CU11_MOD');
+        Route::post('/contratos/{id}/baja', 'darBajaContrato')->name('contratos.baja')->middleware('permiso:CU11_ELI');
     });
 
+    // ── CU-12 Liquidar Pagos de Personal ───────────────────────────────────
+    Route::controller(PagoController::class)->group(function () {
+        Route::get('/pagos', 'listarPagos')->name('pagos.index')->middleware('permiso:CU12_BUS');
+        Route::get('/pagos/{id_contrato}/calcular', 'calcularPago')->name('pagos.calculate')->middleware('permiso:CU12_BUS');
+        Route::post('/pagos/guardar', 'mostrarPago')->name('pagos.store')->middleware('permiso:CU12_ADD'); // Este procesa el envío de la liquidación
+    });
+});
+
 require __DIR__.'/auth.php';
-
-use App\Http\Controllers\ContratoController;
-use App\Http\Controllers\PagoController;
-
-// =========================================================================
-// RUTAS PARA EL CICLO #4: GESTIÓN LABORAL Y LIQUIDACIONES (JECOES Tronic)
-// =========================================================================
-
-// CU-11: Gestionar Contratos de Trabajo
-Route::controller(ContratoController::class)->group(function () {
-    Route::get('/contratos', 'listarContratos')->name('contratos.index');
-    Route::post('/contratos/guardar', 'crearContrato')->name('contratos.store');
-    Route::get('/contratos/{id}/ver', 'verContrato')->name('contratos.show');
-    Route::post('/contratos/{id}/actualizar', 'actualizarContrato')->name('contratos.update');
-    Route::post('/contratos/{id}/baja', 'darBajaContrato')->name('contratos.baja');
-});
-
-// CU-12: Liquidar Pagos de Personal
-Route::controller(PagoController::class)->group(function () {
-    Route::get('/pagos', 'listarPagos')->name('pagos.index');
-    Route::get('/pagos/{id_contrato}/calcular', 'calcularPago')->name('pagos.calculate');
-    Route::post('/pagos/guardar', 'mostrarPago')->name('pagos.store'); // Este procesa el envío de la liquidación
-});

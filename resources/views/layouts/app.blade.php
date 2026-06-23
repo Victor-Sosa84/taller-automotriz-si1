@@ -618,7 +618,50 @@
                 <span class="nav-icon">⊞</span> Dashboard
             </a>
 
-            {{-- Historial --}}
+            {{-- Atención al cliente --}}
+            @if(auth()->user()->puede('CU01_BUS') || auth()->user()->puede('CU02_BUS'))
+            <div class="nav-section">Atención al cliente</div>
+            @if(auth()->user()->puede('CU01_BUS'))
+            <a href="{{ route('clientes.index') }}"
+                class="nav-item {{ request()->routeIs('clientes*') ? 'active' : '' }}" onclick="cerrarSidebar()">
+                <span class="nav-icon">🧑</span> Clientes
+            </a>
+            @endif
+            @if(auth()->user()->puede('CU02_BUS'))
+            <a href="{{ route('autos.index') }}" class="nav-item {{ request()->routeIs('autos*') ? 'active' : '' }}"
+                onclick="cerrarSidebar()">
+                <span class="nav-icon">🚗</span> Vehículos
+            </a>
+            @endif
+            @endif
+
+            {{-- Operaciones --}}
+            @if(auth()->user()->puede('CU04_ADD') || auth()->user()->puede('CU14_BUS') ||
+            auth()->user()->puede('CU09_BUS'))
+            <div class="nav-section">Operaciones</div>
+            @if(auth()->user()->puede('CU04_ADD'))
+            <a href="{{ route('orden-trabajo.create') }}"
+                class="nav-item {{ request()->routeIs('orden-trabajo.*', 'diagnostico.*') ? 'active' : '' }}"
+                onclick="cerrarSidebar()">
+                <span class="nav-icon">＋</span> Ingresos
+            </a>
+            @endif
+            @if(auth()->user()->puede('CU14_BUS'))
+            <a href="{{ route('orden_trabajo.index') }}"
+                class="nav-item {{ request()->routeIs('orden_trabajo.*', 'asignacion.*', 'detalle_ot.*') ? 'active' : '' }}"
+                onclick="cerrarSidebar()">
+                <span class="nav-icon">🔧</span> Órdenes de Trabajo
+            </a>
+            @endif
+            @if(auth()->user()->puede('CU09_BUS'))
+            <a href="{{ route('prestamo.index') }}"
+                class="nav-item {{ request()->routeIs('prestamo*') ? 'active' : '' }}" onclick="cerrarSidebar()">
+                <span class="nav-icon">🛠</span> Préstamos
+            </a>
+            @endif
+            @endif
+
+            {{-- Consultas --}}
             @if(auth()->user()->puede('CU03_BUS') || auth()->user()->puede('CU06_BUS'))
             <div class="nav-section">Consultas</div>
             @if(auth()->user()->puede('CU03_BUS'))
@@ -633,6 +676,15 @@
                 <span class="nav-icon">📄</span> Proformas
             </a>
             @endif
+            @endif
+
+            {{-- Catálogos --}}
+            @if(auth()->user()->puede('CU13_PRI'))
+            <div class="nav-section">Catálogos</div>
+            <a href="{{ route('catalogo.taller') }}"
+                class="nav-item {{ request()->routeIs('catalogo.*') ? 'active' : '' }}" onclick="cerrarSidebar()">
+                <span class="nav-icon">🔩</span> Taller
+            </a>
             @endif
 
             {{-- Administración --}}
@@ -662,7 +714,11 @@
                 <span class="nav-icon">🗒</span> Bitácora
             </a>
             @endif
-            {{-- NUEVOS ENLACES DEL CICLO #4 --}}
+            @endif
+
+            {{-- Personal --}}
+            @if(auth()->user()->puede('CU11_BUS') || auth()->user()->puede('CU12_BUS'))
+            <div class="nav-section">Personal</div>
             @if(auth()->user()->puede('CU11_BUS'))
             <a href="{{ route('contratos.index') }}"
                 class="nav-item {{ request()->routeIs('contratos*') ? 'active' : '' }}" onclick="cerrarSidebar()">
@@ -675,63 +731,6 @@
                 <span class="nav-icon">💰</span> Liquidar Sueldos
             </a>
             @endif
-
-            @if(auth()->user()->puede('CU21_BUS'))
-            <a href="{{ route('bitacora.index') }}"
-                class="nav-item {{ request()->routeIs('bitacora*') ? 'active' : '' }}" onclick="cerrarSidebar()">
-                <span class="nav-icon">🗒</span> Bitácora
-            </a>
-            @endif
-            @endif
-
-            {{-- Atención al cliente --}}
-            @if(auth()->user()->puede('CU01_BUS') || auth()->user()->puede('CU02_BUS'))
-            <div class="nav-section">Atención al cliente</div>
-            @if(auth()->user()->puede('CU01_BUS'))
-            <a href="{{ route('clientes.index') }}"
-                class="nav-item {{ request()->routeIs('clientes*') ? 'active' : '' }}" onclick="cerrarSidebar()">
-                <span class="nav-icon">🧑</span> Clientes
-            </a>
-            @endif
-            @if(auth()->user()->puede('CU02_BUS'))
-            <a href="{{ route('autos.index') }}" class="nav-item {{ request()->routeIs('autos*') ? 'active' : '' }}"
-                onclick="cerrarSidebar()">
-                <span class="nav-icon">🚗</span> Vehículos
-            </a>
-            @endif
-            @endif
-
-            @if(auth()->user()->puede('CU04_ADD') || auth()->user()->puede('CU14_BUS') ||
-            auth()->user()->puede('CU09_BUS'))
-            <div class="nav-section">Operaciones</div>
-            @if(auth()->user()->puede('CU04_ADD'))
-            <a href="{{ route('orden-trabajo.create') }}"
-                class="nav-item {{ request()->routeIs('orden-trabajo.*', 'diagnostico.*') ? 'active' : '' }}"
-                onclick="cerrarSidebar()">
-                <span class="nav-icon">＋</span> Ingresos
-            </a>
-            @endif
-            @if(auth()->user()->puede('CU14_BUS'))
-            <a href="{{ route('orden_trabajo.index') }}"
-                class="nav-item {{ request()->routeIs('orden_trabajo.*', 'asignacion.*', 'detalle_ot.*') ? 'active' : '' }}"
-                onclick="cerrarSidebar()">
-                <span class="nav-icon">🔧</span> Órdenes de Trabajo
-            </a>
-            @endif
-            @if(auth()->user()->puede('CU09_BUS'))
-            <a href="{{ route('prestamo.index') }}"
-                class="nav-item {{ request()->routeIs('prestamo*') ? 'active' : '' }}" onclick="cerrarSidebar()">
-                <span class="nav-icon">🛠</span> Préstamos
-            </a>
-            @endif
-            @endif
-
-            @if(auth()->user()->puede('CU13_PRI'))
-            <div class="nav-section">Catálogos</div>
-            <a href="{{ route('catalogo.taller') }}"
-                class="nav-item {{ request()->routeIs('catalogo.*') ? 'active' : '' }}" onclick="cerrarSidebar()">
-                <span class="nav-icon">🔩</span> Taller
-            </a>
             @endif
 
         </nav>
