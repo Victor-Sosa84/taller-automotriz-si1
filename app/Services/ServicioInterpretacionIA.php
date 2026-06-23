@@ -38,6 +38,19 @@ class ServicioInterpretacionIA
             file_get_contents(__DIR__ . '/function_declarations.json'),
             associative: true
         );
+
+        // PHP no distingue entre un array vacío [] y un objeto vacío {} al
+        // decodificar JSON con associative: true. Esto rompe a Gemini cuando
+        // una función no tiene parámetros (ej. buscarTiposTrabajadorCatalogo),
+        // porque 'properties' => [] se vuelve a serializar como lista, no
+        // como mapa, y la API responde 400 "Cannot bind a list to map".
+        // Se fuerza explícitamente cada 'properties' vacío a un objeto real.
+        foreach ($this->funciones['functionDeclarations'] as &$funcion) {
+            if (isset($funcion['parameters']['properties']) && empty($funcion['parameters']['properties'])) {
+                $funcion['parameters']['properties'] = new \stdClass();
+            }
+        }
+        unset($funcion);
     }
 
     /**
@@ -53,7 +66,19 @@ class ServicioInterpretacionIA
         $respuesta = Http::withHeaders([
             'x-goog-api-key' => config('services.gemini.api_key'),
             'Content-Type'   => 'application/json',
-        ])->post(self::ENDPOINT_INTERPRETACION, [
+        ])
+            // En Windows, PHP/cURL a menudo no encuentra el almacén de
+            // certificados raíz por defecto, y la conexión se queda
+            // esperando en vez de fallar con un error claro. Se le indica
+            // a cURL que use el almacén nativo de certificados del sistema
+            // operativo (disponible desde cURL 7.71 + PHP 8.2).
+            ->withOptions([
+                'curl' => [
+                    CURLOPT_SSL_OPTIONS => defined('CURLSSLOPT_NATIVE_CA') ? CURLSSLOPT_NATIVE_CA : 0,
+                ],
+            ])
+            ->timeout(20)
+            ->post(self::ENDPOINT_INTERPRETACION, [
             'contents' => [
                 [
                     'role'  => 'user',
@@ -120,7 +145,14 @@ class ServicioInterpretacionIA
         $respuesta = Http::withHeaders([
             'x-goog-api-key' => config('services.gemini.api_key'),
             'Content-Type'   => 'application/json',
-        ])->post(self::ENDPOINT_TTS, [
+        ])
+            ->withOptions([
+                'curl' => [
+                    CURLOPT_SSL_OPTIONS => defined('CURLSSLOPT_NATIVE_CA') ? CURLSSLOPT_NATIVE_CA : 0,
+                ],
+            ])
+            ->timeout(20)
+            ->post(self::ENDPOINT_TTS, [
             'contents' => [
                 [
                     'role'  => 'user',
