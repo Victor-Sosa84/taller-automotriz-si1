@@ -40,8 +40,10 @@ class PagoController extends Controller
             $montoTotal = (float) $contrato->valor;
         } else {
             // Caso Porcentaje: Buscamos en la tabla intermedia 'realiza' las tareas hechas por el personal
-            // Se asume que se liquidan los trabajos del mes actual de las órdenes finalizadas
+            // Solo se cuentan los trabajos que todavía no fueron liquidados (pagado = false),
+            // así una orden ya pagada en una liquidación anterior nunca se vuelve a cobrar.
             $trabajosRealizados = Realiza::where('ci_personal', $contrato->ci_personal)
+                ->where('pagado', false)
                 ->with(['manoObra', 'ordenTrabajo'])
                 ->whereHas('ordenTrabajo', function($query) {
                     $query->where('estado', 'Finalizada'); // Solo órdenes concluidas
@@ -55,6 +57,7 @@ class PagoController extends Controller
 
                 $detallesTrabajo[] = [
                     'orden' => $registro->nro_orden_trabajo,
+                    'id_mano_obra' => $registro->id_mano_obra,
                     'servicio' => $registro->manoObra->descripcion,
                     'costo_base' => $registro->manoObra->costo_referencial,
                     'comision_calculada' => $subtotalTrabajo
@@ -88,6 +91,16 @@ class PagoController extends Controller
             'tipo' => $request->tipo,
             'metodo' => $request->metodo
         ]);
+
+        // Marca como pagados los trabajos incluidos en este cálculo, para que no
+        // se vuelvan a contar ni a cobrar en una liquidación futura del mismo contrato.
+        $contrato = Contrato::findOrFail($request->id_contrato);
+        foreach ($calculo->detalles as $detalle) {
+            Realiza::where('ci_personal', $contrato->ci_personal)
+                ->where('nro_orden_trabajo', $detalle->orden)
+                ->where('id_mano_obra', $detalle->id_mano_obra)
+                ->update(['pagado' => true]);
+        }
 
         // Retornamos los datos estructurados listos para ser renderizados en el documento de firma física
         return redirect()->route('pagos.index')->with([

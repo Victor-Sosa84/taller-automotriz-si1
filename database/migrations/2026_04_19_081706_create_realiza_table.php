@@ -13,6 +13,7 @@ return new class extends Migration
             $table->integer('nro_orden_trabajo');
             $table->integer('id_mano_obra');
             $table->string('tipo_participacion', 100)->nullable();
+            $table->boolean('pagado')->default(false);
 
             $table->primary(['ci_personal', 'nro_orden_trabajo', 'id_mano_obra']);
 

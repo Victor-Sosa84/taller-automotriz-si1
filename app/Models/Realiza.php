@@ -14,6 +14,7 @@ class Realiza extends Model
         'nro_orden_trabajo',
         'id_mano_obra',
         'tipo_participacion',
+        'pagado',
     ];
 
     public function persona()

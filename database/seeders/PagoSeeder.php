@@ -38,29 +38,40 @@ class PagoSeeder extends Seeder
         DB::table('realiza')->insert($trabajos);
 
         // =========================================================================
-        // 2. POBLAR TABLA: PAGO 
+        // 2. POBLAR TABLA: PAGO
         // =========================================================================
+        // Sueldo fijo: no depende de 'realiza', se mantienen los pagos semanales
+        // tal como se diseñaron originalmente.
         $pagos = [
             ['id' => 1,  'id_contrato' => 2, 'fecha_pago' => '2026-05-08 18:00:00', 'monto' => 800.00, 'tipo' => 'Sueldo Semanal', 'metodo' => 'Efectivo'],
             ['id' => 2,  'id_contrato' => 7, 'fecha_pago' => '2026-05-08 18:05:00', 'monto' => 600.00, 'tipo' => 'Sueldo Semanal', 'metodo' => 'Efectivo'],
-            ['id' => 3,  'id_contrato' => 3, 'fecha_pago' => '2026-05-08 18:10:00', 'monto' => 450.00, 'tipo' => 'Comisión Semanal', 'metodo' => 'Transferencia'],
-            ['id' => 4,  'id_contrato' => 5, 'fecha_pago' => '2026-05-08 18:15:00', 'monto' => 520.00, 'tipo' => 'Comisión Semanal', 'metodo' => 'Transferencia'],
             ['id' => 5,  'id_contrato' => 2, 'fecha_pago' => '2026-05-15 17:30:00', 'monto' => 800.00, 'tipo' => 'Sueldo Semanal', 'metodo' => 'Efectivo'],
             ['id' => 6,  'id_contrato' => 7, 'fecha_pago' => '2026-05-15 17:35:00', 'monto' => 600.00, 'tipo' => 'Sueldo Semanal', 'metodo' => 'Efectivo'],
-            ['id' => 7,  'id_contrato' => 3, 'fecha_pago' => '2026-05-15 17:40:00', 'monto' => 380.00, 'tipo' => 'Comisión Semanal', 'metodo' => 'Transferencia'],
-            ['id' => 8,  'id_contrato' => 6, 'fecha_pago' => '2026-05-15 17:45:00', 'monto' => 410.00, 'tipo' => 'Comisión Semanal', 'metodo' => 'Efectivo'],
             ['id' => 9,  'id_contrato' => 2, 'fecha_pago' => '2026-05-22 18:00:00', 'monto' => 800.00, 'tipo' => 'Sueldo Semanal', 'metodo' => 'Efectivo'],
             ['id' => 10, 'id_contrato' => 8, 'fecha_pago' => '2026-05-22 18:10:00', 'monto' => 650.00, 'tipo' => 'Sueldo Semanal', 'metodo' => 'Transferencia'],
-            ['id' => 11, 'id_contrato' => 5, 'fecha_pago' => '2026-05-22 18:20:00', 'monto' => 610.00, 'tipo' => 'Comisión Semanal', 'metodo' => 'Transferencia'],
             ['id' => 12, 'id_contrato' => 2, 'fecha_pago' => '2026-05-29 17:00:00', 'monto' => 800.00, 'tipo' => 'Sueldo Semanal', 'metodo' => 'Efectivo'],
             ['id' => 13, 'id_contrato' => 9, 'fecha_pago' => '2026-05-29 17:15:00', 'monto' => 620.00, 'tipo' => 'Sueldo Semanal', 'metodo' => 'Efectivo'],
-            ['id' => 14, 'id_contrato' => 3, 'fecha_pago' => '2026-05-29 17:30:00', 'monto' => 490.00, 'tipo' => 'Comisión Semanal', 'metodo' => 'Transferencia'],
             ['id' => 15, 'id_contrato' => 2, 'fecha_pago' => '2026-06-05 18:00:00', 'monto' => 800.00, 'tipo' => 'Sueldo Semanal', 'metodo' => 'Efectivo'],
-            ['id' => 16, 'id_contrato' => 5, 'fecha_pago' => '2026-06-12 18:00:00', 'monto' => 570.00, 'tipo' => 'Comisión Semanal', 'metodo' => 'Transferencia'],
-            ['id' => 17, 'id_contrato' => 6, 'fecha_pago' => '2026-06-19 18:00:00', 'monto' => 630.00, 'tipo' => 'Comisión Semanal', 'metodo' => 'Efectivo'],
         ];
 
         DB::table('pago')->insert($pagos);
+
+        // Comisión: cada monto corresponde exactamente a la suma de
+        // (mano_obra.costo_referencial * porcentaje del contrato) sobre todos
+        // los trabajos en 'realiza' de esa persona, ya que aquí no hay
+        // liquidaciones previas que excluir. Se liquida en una sola pasada
+        // por persona, y esos registros de 'realiza' quedan marcados como
+        // pagados, consistentes con la lógica real de PagoController::calcularPago().
+        DB::table('pago')->insert([
+            ['id' => 18, 'id_contrato' => 3, 'fecha_pago' => '2026-06-19 18:00:00', 'monto' => 202.50, 'tipo' => 'Comisión', 'metodo' => 'Transferencia'],
+            ['id' => 19, 'id_contrato' => 5, 'fecha_pago' => '2026-06-19 18:10:00', 'monto' => 230.00, 'tipo' => 'Comisión', 'metodo' => 'Transferencia'],
+            ['id' => 20, 'id_contrato' => 6, 'fecha_pago' => '2026-06-19 18:20:00', 'monto' => 137.50, 'tipo' => 'Comisión', 'metodo' => 'Efectivo'],
+        ]);
+
+        DB::table('realiza')
+            ->whereIn('ci_personal', ['6739154', '8214673', '5390218'])
+            ->update(['pagado' => true]);
+
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
     }
 }
