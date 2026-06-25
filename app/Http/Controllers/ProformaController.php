@@ -258,7 +258,7 @@ class ProformaController extends Controller
 
     public function index(Request $request)
     {
-        $query = Proforma::with('diagnostico.auto')->latest('fecha');
+        $query = Proforma::with('diagnostico.auto')->latest('fecha')->latest('nro');
 
         if ($request->estado === 'Vencida') {
             $query->whereIn('estado', ['Emitida', 'Observada'])
@@ -290,7 +290,7 @@ class ProformaController extends Controller
 
     public function buscarProformasPorEstado(?string $estado = null, ?string $desde = null, ?string $hasta = null, ?string $placa = null)
     {
-        $query = Proforma::with('diagnostico.auto')->latest('fecha');
+        $query = Proforma::with('diagnostico.auto')->latest('fecha')->latest('nro');
 
         if ($estado === 'Vencida') {
             $query->whereIn('estado', ['Emitida', 'Observada'])

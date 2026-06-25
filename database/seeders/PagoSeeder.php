@@ -57,19 +57,24 @@ class PagoSeeder extends Seeder
         DB::table('pago')->insert($pagos);
 
         // Comisión: cada monto corresponde exactamente a la suma de
-        // (mano_obra.costo_referencial * porcentaje del contrato) sobre todos
-        // los trabajos en 'realiza' de esa persona, ya que aquí no hay
-        // liquidaciones previas que excluir. Se liquida en una sola pasada
-        // por persona, y esos registros de 'realiza' quedan marcados como
-        // pagados, consistentes con la lógica real de PagoController::calcularPago().
+        // (mano_obra.costo_referencial * porcentaje del contrato) sobre los
+        // trabajos en 'realiza' de esa persona cuya orden de trabajo ya está
+        // Finalizada (las órdenes aún en curso, del FlujoOperativoSeeder,
+        // no se cuentan — igual que haría PagoController::calcularPago()).
+        // HUGO  (15%): 100 (1562MRZ) + 100 (8275JPW) = 200.00 -> 30.00
+        // MARCO (20%): 120 (2657XQP) + 50 (7091BNF) + 120 (2918DKM) = 290.00 -> 58.00
+        // ESTEBAN (12.5%): 80 (3847GKT) + 80 (4430CVL) = 160.00 -> 20.00
         DB::table('pago')->insert([
-            ['id' => 18, 'id_contrato' => 3, 'fecha_pago' => '2026-06-19 18:00:00', 'monto' => 202.50, 'tipo' => 'Comisión', 'metodo' => 'Transferencia'],
-            ['id' => 19, 'id_contrato' => 5, 'fecha_pago' => '2026-06-19 18:10:00', 'monto' => 230.00, 'tipo' => 'Comisión', 'metodo' => 'Transferencia'],
-            ['id' => 20, 'id_contrato' => 6, 'fecha_pago' => '2026-06-19 18:20:00', 'monto' => 137.50, 'tipo' => 'Comisión', 'metodo' => 'Efectivo'],
+            ['id' => 18, 'id_contrato' => 3, 'fecha_pago' => '2026-06-19 18:00:00', 'monto' => 30.00, 'tipo' => 'Comisión', 'metodo' => 'Transferencia'],
+            ['id' => 19, 'id_contrato' => 5, 'fecha_pago' => '2026-06-19 18:10:00', 'monto' => 58.00, 'tipo' => 'Comisión', 'metodo' => 'Transferencia'],
+            ['id' => 20, 'id_contrato' => 6, 'fecha_pago' => '2026-06-19 18:20:00', 'monto' => 20.00, 'tipo' => 'Comisión', 'metodo' => 'Efectivo'],
         ]);
 
         DB::table('realiza')
             ->whereIn('ci_personal', ['6739154', '8214673', '5390218'])
+            ->whereIn('nro_orden_trabajo', function ($query) {
+                $query->select('nro')->from('orden_trabajo')->where('estado', 'Finalizada');
+            })
             ->update(['pagado' => true]);
 
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');

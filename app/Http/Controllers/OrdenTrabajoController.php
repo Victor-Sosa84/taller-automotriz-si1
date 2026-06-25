@@ -56,13 +56,14 @@ class OrdenTrabajoController extends Controller
             ->whereHas('proforma', function ($q) {
                 $q->where('estado', 'Aprobada');
             })
+            ->orderByDesc('nro')
             ->get();
         return view('orden_trabajo.index', compact('ordenes'));
     }
 
     public function buscarOrdenesPorEstado(?string $estado = null)
     {
-        $query = OrdenTrabajo::with(['proforma.cliente', 'auto'])->latest('fecha_inicio');
+        $query = OrdenTrabajo::with(['proforma.cliente', 'auto'])->latest('fecha_inicio')->latest('nro');
 
         if ($estado) {
             $query->where('estado', $estado);
