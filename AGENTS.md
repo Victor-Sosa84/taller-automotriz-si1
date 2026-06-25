@@ -39,6 +39,7 @@
 | CU-19 | Iniciar sesión | 1 | Alta |
 | CU-20 | Cerrar sesión | 1 | Alta |
 | CU-21 | Consultar bitácora | 1 | Baja |
+| CU-22 | Generar reportes por comando de voz | 4 | Alta |
 
 ## Paquetes
 | Paquete | CU incluidos |
@@ -46,12 +47,12 @@
 | P1 Gestión de Recepción | CU-01, CU-02, CU-03, CU-04, CU-05 |
 | P2 Gestión Comercial y Facturación | CU-06, CU-07, CU-08, CU-17, CU-18 |
 | P3 Gestión Administrativa | CU-11, CU-12, CU-13, CU-19, CU-20, CU-21 |
-| P4 Gestión Operativa | CU-09, CU-10, CU-14, CU-15, CU-16 |
+| P4 Gestión Operativa | CU-09, CU-10, CU-14, CU-15, CU-16, CU-22 |
 
 ## Diagrama de clases — entidades principales
 | Entidad | Atributos clave |
 |---|---|
-| `persona` | ci (PK), nombre, telefono, direccion, es_cliente, es_personal |
+| `persona` | ci (PK), nombre, telefono, direccion, nit, es_cliente, es_personal |
 | `usuario` | id_usuario (PK), id_rol (FK), ci_personal (FK), nombre_usuario, clave, correo |
 | `rol` | id (PK), nombre, descripcion |
 | `permiso` | id (PK), nombre, etiqueta, caso_uso, paquete |
@@ -64,24 +65,24 @@
 | `tipo_herramienta` | id (PK), descripcion |
 | `marca_herramienta` | id (PK), nombre |
 | `herramienta` | nro (PK), id_tipo_herramienta (FK), id_marca_herramienta (FK), descripcion, estado, disponible |
-| `prestamo_herramienta` | id (PK), fecha_salida, fecha_devolucion |
+| `prestamo_herramienta` | id (PK), fecha_salida, fecha_devolucion (nullable) |
 | `detalle_prestamo` | id_prestamo_herramienta (FK), nro_herramienta (FK) — PK compuesta, estado_salida, estado_retorno |
-| `auto` | placa (PK), marca, modelo, anio, color |
-| `diagnostico` | id (PK), fecha, ci_personal (FK), placa_auto (FK) |
-| `detalle_diagnostico` | id_diagnostico (FK), id_detalle_diagnostico — PK compuesta, descripcion |
-| `mano_obra` | id (PK), descripcion |
+| `auto` | placa (PK), marca, modelo, anio, color, tipo |
+| `diagnostico` | id (PK), fecha, ci_personal (FK), placa_auto (FK), descripcion |
+| `detalle_diagnostico` | id_diagnostico (FK), id_detalle_diagnostico — PK compuesta, **falla** (texto de la falla detectada; antes se llamaba `descripcion`, renombrada) |
+| `mano_obra` | id (PK), descripcion, costo_referencial |
 | `proforma` | nro (PK), ci_cliente (FK), id_diagnostico (FK), fecha, total_aprox, estado, plazo |
-| `repuesto` | id (PK), nombre, estado, marca |
+| `repuesto` | id (PK), nombre, estado, marca, precio_referencial |
 | `proforma_repuesto` | nro_proforma (FK), id_repuesto (FK) — PK compuesta, cantidad, precio_unitario, descuento |
 | `proforma_servicio` | nro_proforma (FK), id_mano_obra (FK) — PK compuesta, costo, estado, cantidad |
-| `orden_trabajo` | nro (PK), nro_proforma (FK), fecha_inicio, fecha_fin, estado, kilometraje, observacion_entrada, observacion_salida |
+| `orden_trabajo` | nro (PK), nro_proforma (FK, **nullable** — la OT nace sin proforma vinculada, recién se asigna al aprobarla), placa_auto (FK, nullable), fecha_inicio, fecha_fin, estado (Pendiente de Diagnóstico → Diagnóstico Finalizado → En Proceso → Finalizada / Anulada), kilometraje, observacion_entrada, observacion_salida |
 | `detalle_repuesto` | nro_orden_trabajo (FK), id_repuesto (FK) — PK compuesta, cantidad, precio_unitario, descuento |
 | `detalle_trabajo` | nro_orden_trabajo (FK), id_mano_obra (FK) — PK compuesta, costo, estado, cantidad |
-| `realiza` | ci_personal (FK), nro_orden_trabajo (FK), id_mano_obra (FK) — PK compuesta, tipo_participacion |
-| `recoge` | nro_orden_trabajo (FK), ci_persona (FK) — PK compuesta, relacion, fecha |
-| `factura` | nro (PK), fecha_emision, nit, nombre, total, plazo |
-| `detalle_factura` | id_detalle_factura (PK), nro_factura (FK), descripcion, tipo, cantidad, precio, precio_unitario |
-| `cuota` | nro_factura (FK), nro_cuota — PK compuesta, monto, fecha |
+| `realiza` | ci_personal (FK), nro_orden_trabajo (FK), id_mano_obra (FK) — PK compuesta, tipo_participacion, **pagado** (boolean, default false — evita doble pago en `PagoController::calcularPago()`, ver más abajo) |
+| `recoge` | nro_orden_trabajo (FK), ci_persona (FK) — PK compuesta, relacion, fecha. ⚠️ **Existe en el esquema pero ningún CU la llena todavía** (ver Pendientes conocidos) |
+| `factura` | nro (PK), nro_orden_trabajo (FK), fecha_emision, nit (string, **NOT NULL**), nombre, total, plazo |
+| `detalle_factura` | nro_factura (FK), id — **PK compuesta** (`nro_factura`, `id`), descripcion, tipo, cantidad, precio, precio_unitario, descuento |
+| `cuota` | nro_factura (FK), **nro** (no `nro_cuota`) — PK compuesta (`nro_factura`, `nro`), monto, fecha, tipo_pago (`efectivo`/`tarjeta`), referencia_stripe |
 | `bitacora` | id (PK), id_usuario (FK), fecha_hora, accion, ip_equipo |
 
 ## Arquitectura clave
@@ -90,43 +91,57 @@
 - Sin `$timestamps` en la mayoría de modelos
 - Tablas sin prefijo, PKs personalizadas (`nro`, `ci`, `placa`)
 - Permisos: Paquete → Caso de Uso → Permiso granular (ADD/MOD/ELI/BUS)
+- ⚠️ El MySQL local no tiene `STRICT_TRANS_TABLES` activado: un `NULL` insertado en una columna `NOT NULL` (ej. `factura.nit`) no genera error, se guarda como cadena vacía `''` silenciosamente. Verificar manualmente los seeders en columnas obligatorias, no confiar en que MySQL avise.
 
 ## Ciclos completados
 - **Ciclo 1:** CU-01 a CU-03, CU-13, CU-19, CU-20, CU-21
 - **Ciclo 2:** CU-04, CU-05, CU-06, CU-07, CU-08 + PDF de cotización con dompdf
 - **Ciclo 3:** CU-09, CU-10, CU-14, CU-15, CU-16 + Catálogo Taller
+- **Ciclo 4:** CU-11, CU-12, CU-17, CU-18, CU-22 + PDF/Excel de reportes, Stripe, Gemini
 
 ## Flujo principal implementado
-Ingresos (CU-04) → Diagnóstico (CU-05) → Proforma (CU-06) → Emitir/Estado (CU-07/08) → OT (CU-14) → Asignación (CU-15) → Detalles (CU-16)
+Ingresos (CU-04) → Diagnóstico (CU-05) → Proforma (CU-06) → Emitir/Estado (CU-07/08) → OT (CU-14) → Asignación (CU-15) → Detalles (CU-16) → Factura (CU-17) → Pago/Cuotas (CU-18)
+
+Transversal: Reportes por comando de voz (CU-22), consulta cualquier punto del flujo según el permiso del usuario
 
 ## Modelos existentes
 `Usuario`, `Persona`, `Cliente`, `Personal`, `Auto`, `OrdenTrabajo`, `Diagnostico`, `DetalleDiagnostico`, `Proforma`, `ProformaRepuesto`, `ProformaServicio`, `Repuesto`, `ManoObra`, `DetalleRepuesto`, `DetalleTrabajo`, `Bitacora`,
-`Realiza`, `PrestamoHerramienta`, `DetallePrestamo`, `Herramienta`, `TipoHerramienta`, `MarcaHerramienta`
+`Realiza`, `PrestamoHerramienta`, `DetallePrestamo`, `Herramienta`, `TipoHerramienta`, `MarcaHerramienta`,
+`Contrato`, `Pago`, `TipoRemuneracion`, `Factura`, `DetalleFactura`, `Cuota`
 
 ## Estados de proforma
 `Borrador` → `Emitida` → `Aprobada` / `Observada` / `Anulada`
 
-## Sidebar actual
-- General: Dashboard
-- Consultas: Historial, Proformas
-- Administración: Usuarios, Roles, Privilegios, Bitácora
+## Estados de orden_trabajo y su relación con proforma
+`Pendiente de Diagnóstico` → `Diagnóstico Finalizado` → `En Proceso` → `Finalizada` / `Anulada`
+
+Cadena real (importante, no es lo que parece a primera vista):
+1. La OT se crea al registrar la unidad (CU-04), **sin proforma vinculada**, estado `Pendiente de Diagnóstico`.
+2. Se hace el diagnóstico (CU-05) → OT pasa a `Diagnóstico Finalizado`, **sigue sin proforma**.
+3. Se elabora y guarda la proforma (CU-06), nace en `Borrador` → **recién aquí se vincula** `nro_proforma` a la OT, pero la OT sigue en `Diagnóstico Finalizado`.
+4. La proforma se edita/emite (`Emitida`) → OT sigue sin cambio.
+5. La proforma se aprueba (`ProformaController::actualizarEstado`) → **recién aquí** la OT pasa a `En Proceso` y se confirma el vínculo `nro_proforma`.
+
+`OrdenTrabajoController::obtenerOrdenes()` (la vista web normal) filtra solo OT con `proforma.estado = 'Aprobada'` — por eso una OT en `Pendiente de Diagnóstico`/`Diagnóstico Finalizado` nunca debería aparecer ahí (no tiene proforma Aprobada todavía, por diseño).
+
+## Sidebar actual (ordenado por frecuencia de uso)
+- General: Dashboard (+ widget de Reportes por Voz, CU-22)
 - Atención al cliente: Clientes, Vehículos
 - Operaciones: Ingresos, Órdenes de Trabajo, Préstamos
+- Consultas: Historial, Proformas
 - Catálogos: Taller
+- Administración: Usuarios, Roles, Privilegios, Bitácora
+- Personal: Contratos Laborales, Liquidar Sueldos
 
 ## PDFs implementados
 - ✅ Cotización/Proforma (dompdf)
+- ✅ Factura final (dompdf)
+- ✅ Reporte por comando de voz, exportación genérica (dompdf + Maatwebsite/Excel)
 
 ## PDFs pendientes
 - 🔜 Diagnóstico técnico
-- 🔜 Orden de Trabajo (Ciclo 3)
-- 🔜 Historial del vehículo (post Ciclo 3)
-
-## Ciclo 4 — pendiente (Liquidación y Salida)
-- CU-11: Gestionar Contratos de Trabajo
-- CU-12: Liquidar Pagos de Personal
-- CU-17: Generar Factura Final
-- CU-18: Registrar Pago y Cuotas
+- 🔜 Orden de Trabajo
+- 🔜 Historial del vehículo
 
 ## Roadmap completo
 | Ciclo | Enfoque | Estado |
@@ -134,7 +149,7 @@ Ingresos (CU-04) → Diagnóstico (CU-05) → Proforma (CU-06) → Emitir/Estado
 | Ciclo 1 | Base y seguridad (CU-01/02/03/13/19/20/21) | ✅ Completo |
 | Ciclo 2 | Recepción y presupuesto (CU-04/05/06/07/08) | ✅ Completo |
 | Ciclo 3 | Gestión operativa (CU-14/15/16/09/10) | ✅ Completo |
-| Ciclo 4 | Liquidación y salida (CU-17/18/11/12) | ⏳ Pendiente |
+| Ciclo 4 | Liquidación y salida (CU-17/18/11/12) + Reportes por voz (CU-22) | ✅ Completo |
 
 ## Dependencias entre ciclos
 - Ciclo 3 requiere: proforma Aprobada (Ciclo 2)
@@ -146,20 +161,75 @@ Ingresos (CU-04) → Diagnóstico (CU-05) → Proforma (CU-06) → Emitir/Estado
 - Commitear seguido con mensajes claros
 - Avisar al compañero antes de mergear cambios grandes
 
-## Notas del Ciclo 4 — Documentación pendiente
+## CU-22 — Reportes por Comando de Voz (arquitectura)
 
-### Pasarela de pago
-- Usar Libélula QR + Pago con tarjeta (obligatorio para Ciclo 4)
+### Flujo end-to-end (qué llama a qué, en orden)
+1. **Frontend** (`public/js/reporte-voz.js`, cargado desde `resources/views/dashboard/index.blade.php`): botón "Hablar" → `MediaRecorder` grava audio, forzando `audio/ogg;codecs=opus` (con fallback) porque el default del navegador (`audio/webm`) no es aceptado por Gemini.
+2. El audio se manda como `multipart/form-data` a `POST /api/reporte/consultar` → `ReporteController::consultarReporte()`.
+3. El controller delega en `App\Services\ServicioInterpretacionIA::interpretar($audioBase64, $mimeType)` — **primera llamada a Gemini** (modelo `gemini-2.5-flash`, `generateContent` con `inlineData` de audio + `tools.functionDeclarations` cargado desde `app/Services/function_declarations.json`). Gemini transcribe el audio y devuelve `{transcripcion, nombre, parametros, error}` — nunca ejecuta nada, solo decide.
+4. `ReporteController` valida `$nombreFuncion` contra `config('reporte_voz')` (la whitelist) y verifica `auth()->user()->puede($definicion['permiso'])` — si no pasa cualquiera de los dos, corta ahí sin tocar la BD.
+5. Si pasa, ejecuta `call_user_func_array([app($definicion['controller']), $definicion['metodo']], $parametros)` — esto invoca un método real ya existente en un controller del taller (ej. `FacturaController::buscarFacturasPorPeriodo()`), que sí toca Eloquent/la BD.
+6. El resultado se normaliza con `json_decode(json_encode($resultado), true)` (resuelve Collections de Eloquent a array plano) y se manda a `ServicioInterpretacionIA::generarAudioRespuesta($mensaje)` — **segunda llamada a Gemini**, modelo TTS distinto (`gemini-3.1-flash-tts-preview`). Devuelve audio PCM crudo (`audio/L16;codec=pcm;rate=24000`), que se envuelve manualmente con un encabezado WAV de 44 bytes (`ServicioInterpretacionIA::pcmAWav()`) antes de mandarlo al frontend — el navegador no reproduce PCM sin ese encabezado.
+7. El JSON de respuesta (`ok, transcripcion, mensaje, funcion, parametros, resultado, audio_base64, audio_mime`) llega al frontend, que renderiza el resultado de forma genérica (tabla si es lista, clave-valor si es objeto plano) y reproduce el audio.
+8. **Exportación** (botones PDF/Excel): el frontend manda `funcion` + `parametros` (no el resultado) a `POST /api/reporte/exportar` → `ReporteController::exportarReporte()` **re-ejecuta la misma función desde cero** (con su misma verificación de permiso) y genera el archivo con `\PDF::loadView('reporte_voz.export_pdf', ...)` o `Maatwebsite\Excel\Facades\Excel::download(new ReporteVozExport($resultado), ...)` — nunca confía en datos ya mostrados en pantalla.
 
-### Implementación (Solo Ciclo 4 / Segunda presentación)
-- **5.1 Elección de plataforma:** describir PHP/Laravel (ventajas/desventajas), MySQL, Windows, dompdf. En "Otros": software adicional necesario (lector PDF, etc.)
-- **5.2 Diagrama de componentes general** — recursos físicos del sistema
-- **5.3 Diagrama de componentes por paquete** — uno por cada paquete (P1, P2, P3, P4)
+### Archivos involucrados
+| Archivo | Rol |
+|---|---|
+| `app/Services/ServicioInterpretacionIA.php` | Las dos llamadas a Gemini (interpretar + TTS) + conversión PCM→WAV |
+| `app/Services/function_declarations.json` | Schema de las 14 funciones, formato `functionDeclarations` de Gemini (camelCase) |
+| `config/reporte_voz.php` | Whitelist función→controller→método→permiso. Única fuente de verdad de seguridad |
+| `app/Http/Controllers/ReporteController.php` | Orquesta todo: recibe audio, verifica permiso, ejecuta, exporta |
+| `app/Exports/ReporteVozExport.php` | Normaliza cualquier resultado a filas de Excel, con ancho de columna dinámico |
+| `resources/views/reporte_voz/export_pdf.blade.php` | Vista genérica para el PDF (dompdf) |
+| `resources/views/dashboard/index.blade.php` | HTML del widget (tarjeta "Preguntá algo sobre el taller") |
+| `public/js/reporte-voz.js` | Grabación, fetch, renderizado, exportación vía formulario |
+| `routes/web.php` | `POST /api/reporte/consultar` y `POST /api/reporte/exportar`, ambas bajo `auth` + `permiso:CU22_GEN` |
+
+### Catálogo completo de funciones (config/reporte_voz.php)
+| Función | Controller | Permiso requerido |
+|---|---|---|
+| `buscarProformasPorEstado` | `ProformaController` | `CU06_BUS` |
+| `buscarProformaPorNumero` | `ProformaController` | `CU06_BUS` |
+| `buscarFacturasPorPeriodo` | `FacturaController` | `CU17_BUS` |
+| `buscarFacturaPorNumero` | `FacturaController` | `CU17_BUS` |
+| `buscarCuotasPendientes` | `CuotaController` | `CU18_BUS` |
+| `buscarOrdenesPorEstado` | `OrdenTrabajoController` | `CU14_BUS` |
+| `buscarPrestamos` | `PrestamoController` | `CU09_BUS` |
+| `buscarAsignacionesPorOrden` | `AsignacionController` | `CU15_BUS` |
+| `buscarDiagnosticosPorPeriodo` | `DiagnosticoController` | `CU05_BUS` |
+| `buscarCatalogo` | `CatalogoController` | ninguno (solo `CU22_GEN`) |
+| `buscarAutosCatalogo` | `AutoController` | ninguno |
+| `buscarTiposTrabajadorCatalogo` | `CargoController` | ninguno |
+| `contarClientesPorZona` | `ClienteController` | ninguno — solo conteo, no lista nombres |
+| `contarPersonalPorTipoTrabajador` | `CargoController` | ninguno — solo conteo |
+
+Todos los métodos de la tabla son **wrappers nuevos** (no existían antes de CU-22), creados específicamente para ser invocados desde aquí — no tienen ruta ni vista propia, viven en los controllers existentes para reutilizar el modelo Eloquent y las reglas de negocio sin duplicarlas.
+
+### Reglas de seguridad (no negociables si se modifica este flujo)
+- `CU22_GEN` jamás autoriza un dato por sí mismo — solo abre el micrófono.
+- Si un nombre de función no está en `config('reporte_voz')`, se rechaza, aunque Gemini lo haya inventado.
+- El permiso se verifica **siempre antes de ejecutar**, tanto en consulta como en exportación — nunca se confía en el estado del frontend.
+- Gemini nunca recibe ni genera SQL/Eloquent — solo nombres de función + parámetros tipados, validados por el `function_calling_config.mode = 'VALIDATED'` + `allowed_function_names`.
+
+### Detalles técnicos que rompen si se tocan sin cuidado
+- `properties: []` en el JSON de una función sin parámetros se serializa mal en PHP (lista en vez de objeto) y Gemini la rechaza con 400 — `ServicioInterpretacionIA` lo corrige forzando `new \stdClass()` en el constructor.
+- En Windows/XAMPP, Guzzle puede quedarse esperando indefinidamente (timeout sin error claro) por el almacén de certificados SSL — se fuerza `CURLOPT_SSL_OPTIONS => CURLSSLOPT_NATIVE_CA`.
+- Las llamadas a Gemini usan `->retry(2, 1500, ..., throw: false)` ante un 503 ("modelo saturado") — el `throw: false` es obligatorio, sin él Laravel relanza una excepción no controlada en vez de dejar que `$respuesta->failed()` la maneje.
+- Maatwebsite/Excel requiere las extensiones PHP `gd`, `zip`, `dom`, `simplexml`, `xml`, `xmlreader`, `xmlwriter` — deben estar declaradas en `composer.json` (`require`) para que Railway/Nixpacks las active en el build.
+
+- **Pendiente**: el mensaje hablado de éxito es un texto fijo ("Aquí está el resultado de tu consulta"), no personalizado según el resultado.
+
+## Pendientes conocidos (no urgentes)
+- Permiso `CU13_PRI` gatea la sección "Catálogos" del sidebar de forma provisional — no existe un permiso propio para gestión de catálogo del taller.
+- Tabla `recoge` existe en el esquema pero ningún CU la llena todavía (posible CU-23 futuro: registrar entrega de vehículo).
+- Extremo 2 (constructor de filtros genérico para CU-22, en vez de catálogo fijo de funciones) — evaluado y descartado por tiempo, queda como mejora futura.
 
 ## Diagrama de despliegue - ✅ Completado
 - Cliente: Dispositivo Desktop + Dispositivo Móvil
 - Servidor local: Laravel & PHP → MySQL Local (TCP/IP)
 - Servidor nube: Railway Laravel & PHP → Railway MySQL (TCP/IP)
+- Servidor externo: Gemini API y Stripe (HTTPS) — conectados desde ambos servidores (local y Railway)
 
 ## Diagrama de paquetes en capas - ✅ Completado
 - Capa Específica: P1, P2, P3, P4
