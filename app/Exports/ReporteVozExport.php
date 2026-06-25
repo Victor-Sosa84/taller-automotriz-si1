@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
 /**
@@ -15,14 +16,19 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
  * de detalle que tiene sentido ver fila por fila. Si el resultado es un
  * array plano de valores simples, se exporta como una sola fila.
  */
-class ReporteVozExport implements FromCollection, WithHeadings
+class ReporteVozExport implements FromCollection, WithHeadings, WithColumnWidths
 {
     private array $filas = [];
     private array $columnas = [];
 
     public function __construct(mixed $resultado)
     {
-        $this->prepararFilas($resultado);
+        // El resultado puede contener Collections de Eloquent, modelos, u otros
+        // objetos que no son arrays PHP puros (is_array() los ignoraría).
+        // Se normaliza pasando por JSON, igual que ya hace response()->json()
+        // al devolver la respuesta al frontend, para tratar todo de forma uniforme.
+        $resultadoNormalizado = json_decode(json_encode($resultado), true);
+        $this->prepararFilas($resultadoNormalizado);
     }
 
     private function prepararFilas(mixed $resultado): void
@@ -58,5 +64,30 @@ class ReporteVozExport implements FromCollection, WithHeadings
     public function headings(): array
     {
         return $this->columnas;
+    }
+
+    /**
+     * Calcula el ancho de cada columna según el contenido más largo
+     * (encabezado o valores), ya que las columnas varían según qué
+     * función del catálogo se haya ejecutado.
+     */
+    public function columnWidths(): array
+    {
+        $anchos = [];
+
+        foreach ($this->columnas as $indice => $nombreColumna) {
+            $maxLargo = strlen((string) $nombreColumna);
+
+            foreach ($this->filas as $fila) {
+                $valor = $fila[$indice] ?? '';
+                $maxLargo = max($maxLargo, strlen((string) $valor));
+            }
+
+            // Letra de columna de Excel: A, B, C... (hasta Z, suficiente para este caso)
+            $letra = chr(65 + $indice);
+            $anchos[$letra] = min(max($maxLargo + 3, 10), 45);
+        }
+
+        return $anchos;
     }
 }

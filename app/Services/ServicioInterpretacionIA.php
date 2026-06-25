@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Log;
  */
 class ServicioInterpretacionIA
 {
-    private const MODELO_INTERPRETACION = 'gemini-3.5-flash';
+    private const MODELO_INTERPRETACION = 'gemini-2.5-flash';
     private const MODELO_TTS = 'gemini-3.1-flash-tts-preview';
 
     private const ENDPOINT_INTERPRETACION = 'https://generativelanguage.googleapis.com/v1beta/models/' . self::MODELO_INTERPRETACION . ':generateContent';
@@ -59,9 +59,9 @@ class ServicioInterpretacionIA
      *
      * @param string $audioBase64  Contenido del audio codificado en base64.
      * @param string $mimeType     Tipo MIME del audio (ej. 'audio/webm', 'audio/wav').
-     * @return array{transcripcion: string, nombre: ?string, parametros: array}|null
+     * @return array{transcripcion: string, nombre: ?string, parametros: array, error: ?string}
      */
-    public function interpretar(string $audioBase64, string $mimeType): ?array
+    public function interpretar(string $audioBase64, string $mimeType): array
     {
         $respuesta = Http::withHeaders([
             'x-goog-api-key' => config('services.gemini.api_key'),
@@ -78,12 +78,20 @@ class ServicioInterpretacionIA
                 ],
             ])
             ->timeout(20)
+            // Gemini puede responder 503 "high demand" en picos puntuales de
+            // tráfico — la propia API indica que suele ser temporal. Se
+            // reintenta hasta 2 veces, con una pausa corta entre intentos,
+            // antes de considerarlo un fallo real.
+            ->retry(2, 1500, function ($exception, $request) {
+                return $exception instanceof \Illuminate\Http\Client\RequestException
+                    && $exception->response->status() === 503;
+            }, throw: false)
             ->post(self::ENDPOINT_INTERPRETACION, [
             'contents' => [
                 [
                     'role'  => 'user',
                     'parts' => [
-                        ['text' => 'Transcribe el audio y determina qué función del catálogo corresponde ejecutar según lo que la persona pidió.'],
+                        ['text' => 'Transcribe textualmente lo que dice el audio y, en tu respuesta, incluye siempre esa transcripción como texto antes de decidir qué función del catálogo corresponde ejecutar. No omitas el texto transcrito aunque tengas clara la función a usar.'],
                         [
                             'inlineData' => [
                                 'mimeType' => $mimeType,
@@ -107,7 +115,12 @@ class ServicioInterpretacionIA
                 'status' => $respuesta->status(),
                 'body'   => $respuesta->body(),
             ]);
-            return null;
+
+            $error = $respuesta->status() === 503
+                ? 'servicio_saturado'
+                : 'error_desconocido';
+
+            return ['transcripcion' => '', 'nombre' => null, 'parametros' => [], 'error' => $error];
         }
 
         $partes = $respuesta->json('candidates.0.content.parts', []);
@@ -130,6 +143,7 @@ class ServicioInterpretacionIA
             'transcripcion' => trim($transcripcion),
             'nombre'        => $nombreFuncion,
             'parametros'    => $parametros,
+            'error'         => null,
         ];
     }
 
@@ -185,9 +199,52 @@ class ServicioInterpretacionIA
             return null;
         }
 
+        // Gemini TTS devuelve audio PCM crudo (sin encabezado), no un WAV
+        // reproducible directamente. El mimeType típico es
+        // "audio/L16;codec=pcm;rate=24000". Se construye el encabezado WAV
+        // alrededor de esos bytes para que el navegador pueda reproducirlo.
+        $pcmCrudo  = base64_decode($parteAudio['data']);
+        $sampleRate = $this->extraerSampleRate($parteAudio['mimeType'] ?? '');
+        $wav        = $this->pcmAWav($pcmCrudo, $sampleRate);
+
         return [
-            'audioBase64' => $parteAudio['data'],
-            'mimeType'    => $parteAudio['mimeType'] ?? 'audio/wav',
+            'audioBase64' => base64_encode($wav),
+            'mimeType'    => 'audio/wav',
         ];
+    }
+
+    private function extraerSampleRate(string $mimeType): int
+    {
+        if (preg_match('/rate=(\d+)/', $mimeType, $coincidencia)) {
+            return (int) $coincidencia[1];
+        }
+        return 24000; // valor por defecto documentado de Gemini TTS
+    }
+
+    /**
+     * Envuelve datos PCM de 16 bits mono en un encabezado WAV estándar de 44 bytes,
+     * siguiendo la estructura RIFF/WAVE documentada para la salida de Gemini TTS.
+     */
+    private function pcmAWav(string $pcmData, int $sampleRate, int $canales = 1, int $bitsPorMuestra = 16): string
+    {
+        $byteRate   = $sampleRate * $canales * $bitsPorMuestra / 8;
+        $blockAlign = $canales * $bitsPorMuestra / 8;
+        $dataSize   = strlen($pcmData);
+
+        $cabecera  = 'RIFF';
+        $cabecera .= pack('V', 36 + $dataSize);
+        $cabecera .= 'WAVE';
+        $cabecera .= 'fmt ';
+        $cabecera .= pack('V', 16);
+        $cabecera .= pack('v', 1); // PCM
+        $cabecera .= pack('v', $canales);
+        $cabecera .= pack('V', $sampleRate);
+        $cabecera .= pack('V', $byteRate);
+        $cabecera .= pack('v', $blockAlign);
+        $cabecera .= pack('v', $bitsPorMuestra);
+        $cabecera .= 'data';
+        $cabecera .= pack('V', $dataSize);
+
+        return $cabecera . $pcmData;
     }
 }

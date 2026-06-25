@@ -158,10 +158,21 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (typeof resultado === 'object') {
+            const entradas = Object.entries(resultado);
+
+            // Caso especial: una sola clave y es una lista — se muestra el
+            // título como encabezado de sección, con la tabla debajo, en
+            // vez de como una fila de tabla horizontal (que se ve mal con
+            // contenido tan ancho al lado de la etiqueta).
+            if (entradas.length === 1 && Array.isArray(entradas[0][1])) {
+                const [clave, lista] = entradas[0];
+                return `<div style="font-weight:600; margin-bottom:.6rem; text-transform:capitalize;">${escaparHtml(clave)}</div>` + renderizarLista(lista);
+            }
+
             let html = '<div class="table-wrap" style="border:none;"><table>';
-            for (const [clave, valor] of Object.entries(resultado)) {
+            for (const [clave, valor] of entradas) {
                 if (Array.isArray(valor)) {
-                    html += `<tr><td style="font-weight:600; vertical-align:top;">${escaparHtml(clave)}</td><td>${renderizarLista(valor)}</td></tr>`;
+                    html += `<tr><td colspan="2" style="font-weight:600; padding-top:1rem;">${escaparHtml(clave)}</td></tr><tr><td colspan="2">${renderizarLista(valor)}</td></tr>`;
                 } else {
                     html += `<tr><td style="font-weight:600;">${escaparHtml(clave)}</td><td>${escaparHtml(String(valor ?? '—'))}</td></tr>`;
                 }

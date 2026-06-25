@@ -3,6 +3,15 @@
 
 @section('content')
 
+<div style="margin-bottom:1.5rem;">
+    <h2 style="font-family:'Barlow Condensed',sans-serif; font-size:1.8rem; font-weight:800; text-transform:uppercase;">
+        Bienvenido, {{ auth()->user()->nombre_usuario }}
+    </h2>
+    <p style="color:var(--muted); font-size:.85rem; margin-top:.2rem;">
+        {{ auth()->user()->nombre_rol }} — {{ now()->format('d/m/Y') }}
+    </p>
+</div>
+
 {{-- CU-22: Reportes por comando de voz --}}
 @if(auth()->user()->puede('CU22_GEN'))
 <div class="card" id="card-reporte-voz" style="margin-bottom:1.75rem;">
@@ -38,15 +47,6 @@
     </div>
 </div>
 @endif
-
-<div style="margin-bottom:1.5rem;">
-    <h2 style="font-family:'Barlow Condensed',sans-serif; font-size:1.8rem; font-weight:800; text-transform:uppercase;">
-        Bienvenido, {{ auth()->user()->nombre_usuario }}
-    </h2>
-    <p style="color:var(--muted); font-size:.85rem; margin-top:.2rem;">
-        {{ auth()->user()->nombre_rol }} — {{ now()->format('d/m/Y') }}
-    </p>
-</div>
 
 {{-- Stats visibles según permisos --}}
 @if($stats['totalUsuarios'] !== null || $stats['totalClientes'] !== null || $stats['totalPersonal'] !== null)

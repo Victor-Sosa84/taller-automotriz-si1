@@ -22,7 +22,11 @@ class ReporteController extends Controller
 
         $interpretacion = $this->servicioIA->interpretar($audioBase64, $request->mime_type);
 
-        if (!$interpretacion) {
+        if ($interpretacion['error'] === 'servicio_saturado') {
+            return $this->responderConAudio(false, 'El servicio de inteligencia artificial está temporalmente saturado. Por favor, intenta de nuevo en unos segundos.');
+        }
+
+        if ($interpretacion['error']) {
             return $this->responderConAudio(false, 'No pude procesar el audio. ¿Puedes intentarlo de nuevo?');
         }
 
@@ -86,6 +90,10 @@ class ReporteController extends Controller
 
         $controller = app($definicion['controller']);
         $resultado  = call_user_func_array([$controller, $definicion['metodo']], $parametros);
+
+        // Normaliza Collections/modelos Eloquent a array PHP puro antes de
+        // exportar, igual que se hace en ReporteVozExport.
+        $resultado = json_decode(json_encode($resultado), true);
 
         if ($request->formato === 'pdf') {
             return \PDF::loadView('reporte_voz.export_pdf', [
