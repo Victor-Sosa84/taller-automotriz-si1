@@ -200,7 +200,7 @@
                 <input type="email"
                         id="correo"
                         name="correo"
-                        value="{{ old('correo', $request->correo) }}"
+                        value="{{ old('correo', $request->email ?? $request->correo) }}"
                         placeholder="correo@taller.com"
                         required>
             </div>
