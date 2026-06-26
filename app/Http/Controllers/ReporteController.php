@@ -56,7 +56,10 @@ class ReporteController extends Controller
         $controller = app($definicion['controller']);
         $resultado  = call_user_func_array([$controller, $definicion['metodo']], $parametros);
 
-        return $this->responderConAudio(true, 'Aquí está el resultado de tu consulta.', $transcripcion, $nombreFuncion, $resultado, $parametros);
+        $mensajeHablado = $this->servicioIA->redactarResumen($nombreFuncion, $parametros, $resultado)
+            ?? 'Aquí está el resultado de tu consulta.';
+
+        return $this->responderConAudio(true, $mensajeHablado, $transcripcion, $nombreFuncion, $resultado, $parametros);
     }
 
     /**
