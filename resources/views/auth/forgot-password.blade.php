@@ -205,18 +205,18 @@
             <div class="error-msg">{{ $errors->first() }}</div>
         @endif
 
-        <form method="POST" action="{{ url('/password.email') }}">
+        <form method="POST" action="{{ route('password.email') }}">
             @csrf
 
             <div class="form-group">
                 <label for="correo">Correo electrónico</label>
                 <input type="email"
-                       id="correo"
-                       name="correo"
-                       value="{{ old('correo') }}"
-                       placeholder="correo@taller.com"
-                       required
-                       autofocus>
+                        id="correo"
+                        name="correo"
+                        value="{{ old('correo') }}"
+                        placeholder="correo@taller.com"
+                        required
+                        autofocus>
             </div>
 
             <button type="submit">Enviar enlace de recuperación</button>

@@ -189,7 +189,7 @@
             <div class="error-msg">{{ $errors->first() }}</div>
         @endif
 
-        <form method="POST" action="{{ url('/password.store') }}">
+        <form method="POST" action="{{ route('password.store') }}">
             @csrf
 
             {{-- Token oculto que Laravel necesita para validar el reset --}}
@@ -198,31 +198,31 @@
             <div class="form-group">
                 <label for="correo">Correo electrónico</label>
                 <input type="email"
-                       id="correo"
-                       name="correo"
-                       value="{{ old('correo', $request->correo) }}"
-                       placeholder="correo@taller.com"
-                       required>
+                        id="correo"
+                        name="correo"
+                        value="{{ old('correo', $request->correo) }}"
+                        placeholder="correo@taller.com"
+                        required>
             </div>
 
             <div class="form-group">
                 <label for="password">Nueva contraseña</label>
                 <input type="password"
-                       id="password"
-                       name="password"
-                       placeholder="Mín. 8 caracteres, mayús., números y símbolos"
-                       required
-                       autofocus>
+                        id="password"
+                        name="password"
+                        placeholder="Mín. 8 caracteres, mayús., números y símbolos"
+                        required
+                        autofocus>
                 <div class="field-hint">Mínimo 8 caracteres — mayúsculas, minúsculas, números y símbolos.</div>
             </div>
 
             <div class="form-group">
                 <label for="password_confirmation">Confirmar contraseña</label>
                 <input type="password"
-                       id="password_confirmation"
-                       name="password_confirmation"
-                       placeholder="Repetir contraseña"
-                       required>
+                        id="password_confirmation"
+                        name="password_confirmation"
+                        placeholder="Repetir contraseña"
+                        required>
             </div>
 
             <button type="submit">Restablecer contraseña</button>
