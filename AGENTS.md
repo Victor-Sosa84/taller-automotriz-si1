@@ -93,6 +93,21 @@
 - Permisos: Paquete → Caso de Uso → Permiso granular (ADD/MOD/ELI/BUS)
 - ⚠️ El MySQL local no tiene `STRICT_TRANS_TABLES` activado: un `NULL` insertado en una columna `NOT NULL` (ej. `factura.nit`) no genera error, se guarda como cadena vacía `''` silenciosamente. Verificar manualmente los seeders en columnas obligatorias, no confiar en que MySQL avise.
 
+## Email — Resend (API HTTP)
+- Driver: `resend` (no SMTP) — Railway bloquea puertos SMTP salientes (25/587) en el plan free/hobby; Resend resuelve esto via HTTPS (puerto 443).
+- Paquete: `resend/resend-php` — instalado vía Composer, registrado en `config/mail.php` como mailer `resend` y en `config/services.php` con `RESEND_KEY`.
+- Remitente: `onboarding@resend.dev` (dominio de pruebas de Resend, sin verificación de dominio propio requerida).
+- Restricción del plan gratuito: sin dominio propio verificado, solo puede entregar correos a la dirección con la que está registrada la cuenta en Resend. Para producción real, verificar un dominio propio en el panel de Resend y actualizar `MAIL_FROM_ADDRESS`.
+- Variables de entorno requeridas (local y Railway):
+```env
+MAIL_MAILER=resend
+MAIL_FROM_ADDRESS="onboarding@resend.dev"
+MAIL_FROM_NAME="Taller Automotriz"
+RESEND_KEY=re_tu_api_key_resend
+```
+- ⚠️ Los correos de reset pueden llegar a Spam en Gmail la primera vez — es propio del dominio compartido `onboarding@resend.dev`. Marcar como "No es spam" en la primera prueba y los siguientes llegarán a la bandeja principal.
+- ⚠️ No abrir el link de reset desde el dashboard de Resend (lo renderiza en un iframe que rompe el envío del formulario) — abrirlo siempre desde el cliente de correo real.
+
 ## Ciclos completados
 - **Ciclo 1:** CU-01 a CU-03, CU-13, CU-19, CU-20, CU-21
 - **Ciclo 2:** CU-04, CU-05, CU-06, CU-07, CU-08 + PDF de cotización con dompdf
@@ -218,7 +233,7 @@ Todos los métodos de la tabla son **wrappers nuevos** (no existían antes de CU
 - Las llamadas a Gemini usan `->retry(2, 1500, ..., throw: false)` ante un 503 ("modelo saturado") — el `throw: false` es obligatorio, sin él Laravel relanza una excepción no controlada en vez de dejar que `$respuesta->failed()` la maneje.
 - Maatwebsite/Excel requiere las extensiones PHP `gd`, `zip`, `dom`, `simplexml`, `xml`, `xmlreader`, `xmlwriter` — deben estar declaradas en `composer.json` (`require`) para que Railway/Nixpacks las active en el build.
 
-- **Pendiente**: el mensaje hablado de éxito es un texto fijo ("Aquí está el resultado de tu consulta"), no personalizado según el resultado.
+- **Resuelto en Ciclo 4:** el mensaje hablado de éxito es generado dinámicamente por `ServicioInterpretacionIA::redactarResumen()` — segunda llamada de texto a `gemini-2.5-flash` que resume el resultado real en 1-2 oraciones naturales antes de mandarlo a TTS. Si falla (429, 503, timeout de 12s), cae al fallback genérico sin romper el flujo.
 
 ## Pendientes conocidos (no urgentes)
 - Permiso `CU13_PRI` gatea la sección "Catálogos" del sidebar de forma provisional — no existe un permiso propio para gestión de catálogo del taller.

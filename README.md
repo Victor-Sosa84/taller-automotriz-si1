@@ -18,7 +18,7 @@ Sistema web desarrollado con **Laravel 11** para la gestión interna del Taller 
 - **Base de datos:** MySQL
 - **Frontend:** Blade Templates + CSS personalizado (tema oscuro automotriz)
 - **Autenticación:** Laravel Auth + Breeze con RBAC dinámico
-- **Email:** Mailtrap (desarrollo) / SMTP real (producción)
+- **Email:** Resend (API HTTP, local y producción)
 - **Pagos:** Stripe (Payment Intents + Elements, modo de prueba)
 - **Reportes:** dompdf (PDF) y Laravel Excel / Maatwebsite (Excel)
 - **Comando de voz (CU-22):** API de Gemini (interpretación de audio + function calling + texto a voz)
@@ -91,7 +91,7 @@ El sistema implementa **RBAC dinámico** basado en casos de uso PUDS:
 - PHP **8.2** o superior, con las extensiones **gd, zip, dom, simplexml, xml, xmlreader, xmlwriter** habilitadas (necesarias para Maatwebsite/Excel; suelen venir activas por defecto en XAMPP)
 - **Composer**
 - **MySQL** (XAMPP, Laragon, o similar)
-- Cuenta en **Mailtrap** (para recuperación de contraseña)
+- Cuenta en **Resend** (para recuperación de contraseña — nivel gratuito disponible)
 - Cuenta en **Stripe** (modo de prueba, para CU-18)
 - Cuenta en **Google AI Studio** (para la API de Gemini, CU-22 — nivel gratuito disponible sin tarjeta)
 
@@ -133,14 +133,13 @@ DB_PASSWORD=
 SESSION_DRIVER=database
 SESSION_SECURE_COOKIE=false
 
-MAIL_MAILER=smtp
-MAIL_HOST=sandbox.smtp.mailtrap.io
-MAIL_PORT=2525
-MAIL_USERNAME=tu_username_mailtrap
-MAIL_PASSWORD=tu_password_mailtrap
-MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS="noreply@taller.com"
+MAIL_MAILER=resend
+MAIL_FROM_ADDRESS="onboarding@resend.dev"
 MAIL_FROM_NAME="Taller Automotriz"
+
+# Resend (recuperación de contraseña — API HTTP, no requiere SMTP)
+# Se obtiene en https://resend.com — nivel gratuito disponible sin tarjeta
+RESEND_KEY=re_tu_api_key_resend
 
 # Stripe (CU-18: pago de facturas, modo de prueba)
 STRIPE_KEY=tu_clave_publica_stripe
@@ -180,9 +179,11 @@ Abre **http://localhost:8000**
 ## Recuperación de contraseña
 
 1. Ve a `/login` → *¿Olvidaste tu contraseña?*
-2. Ingresa el correo del usuario
-3. Abre tu bandeja en [mailtrap.io](https://mailtrap.io) y copia el enlace
-4. Ingresa y confirma la nueva contraseña
+2. Ingresa el correo del usuario (debe ser el mismo con el que está registrada tu cuenta en Resend)
+3. Revisa tu bandeja de entrada (puede llegar a Spam la primera vez — márcalo como "No es spam")
+4. Haz clic en el enlace del correo e ingresa la nueva contraseña
+
+> **Nota:** el sistema usa Resend vía API HTTP (no SMTP) para garantizar compatibilidad con Railway, que bloquea conexiones SMTP salientes en el plan gratuito.
 
 ---
 
