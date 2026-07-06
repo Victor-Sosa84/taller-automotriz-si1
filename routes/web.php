@@ -29,6 +29,38 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return Auth::check() ? redirect()->route('dashboard') : redirect()->route('login');
 });
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+Route::get('/dashboard/reporte', [DashboardController::class, 'exportarReporte'])->name('dashboard.reporte');
+
+
+// Ruta de la vista / comando de voz
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+
+// Ruta exclusiva para refrescar la gráfica por AJAX (Filtro por fecha o refresh manual)
+Route::get('/dashboard/filtrar', [DashboardController::class, 'filtrarMetricas'])->name('dashboard.filtrar');
+
+
+//use App\Http\Controllers\SalidaVehiculoController;
+// Envuelve tus rutas operativas dentro del middleware 'auth'
+Route::middleware(['auth'])->group(function () {
+    
+    // Ruta del Dashboard protegida
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+    
+    // Tu nueva ruta de Salida de Vehículos protegida
+    Route::get('/salida-vehiculos', function () {
+        return view('salida.index');
+    })->name('salida.index');
+    
+});
+Route::get('/', function () {
+    // CORRECCIÓN: Se cambió 'dashboard' por 'dashboard.index'
+    return Auth::check() ? redirect()->route('dashboard.index') : redirect()->route('login');
+});
+
+
+
+
 
 Route::middleware(['auth'])->group(function () {
 
@@ -204,3 +236,6 @@ Route::middleware(['auth'])->group(function () {
     });
 
 require __DIR__.'/auth.php';
+
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+Route::get('/dashboard/reporte', [DashboardController::class, 'exportarReporte'])->name('dashboard.reporte');

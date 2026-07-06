@@ -613,8 +613,8 @@
         <nav class="sidebar-nav">
 
             <div class="nav-section">General</div>
-            <a href="{{ route('dashboard') }}" class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}"
-                onclick="cerrarSidebar()">
+            <a href="{{ route('dashboard.index') }}"
+                class="nav-item {{ request()->routeIs('dashboard*') ? 'active' : '' }}">
                 <span class="nav-icon">⊞</span> Dashboard
             </a>
 
@@ -632,6 +632,17 @@
                 onclick="cerrarSidebar()">
                 <span class="nav-icon">🚗</span> Vehículos
             </a>
+            @endif
+            @if(auth()->user()->puede('CU15_BUS'))
+            {{-- En tu barra lateral, dentro de la sección OPERACIONES --}}
+            <div class="menu-item">
+                <a href="{{ route('salida.index') }}"
+                    class="nav-link {{ Request::is('salida-vehiculos') ? 'active' : '' }}"
+                    style="color: #fff; text-decoration: none; display: flex; align-items: center; padding: 0.5rem 1rem;">
+                    <span style="margin-right: 0.5rem;">🚗</span>
+                    <span>Salida de Vehículos</span>
+                </a>
+            </div>
             @endif
             @endif
 
