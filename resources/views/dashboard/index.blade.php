@@ -75,6 +75,22 @@
             histórico global --}}
             <input type="date" id="fecha" name="fecha" value="{{ request('fecha') }}"
                 style="padding: .4rem; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: inherit; font-size: .85rem;">
+
+            <label for="periodo"
+                style="font-size: .75rem; font-weight: 700; text-transform: uppercase; color: var(--muted);">Período:</label>
+            <select id="periodo" name="periodo"
+                style="padding: .4rem; border-radius: 4px; border: 1px solid var(--border); background-color: #1e222b; color: #e8e8e8; font-size: .85rem;">
+                <option value="dia" style="background-color:#1e222b; color:#e8e8e8;" @selected(request('periodo')=='dia'
+                    )>Día</option>
+                <option value="semana" style="background-color:#1e222b; color:#e8e8e8;"
+                    @selected(request('periodo')=='semana' )>Semana (Dom-Sáb)</option>
+                <option value="mes" style="background-color:#1e222b; color:#e8e8e8;" @selected(request('periodo', 'mes'
+                    )=='mes' )>Mes</option>
+                <option value="anio" style="background-color:#1e222b; color:#e8e8e8;"
+                    @selected(request('periodo')=='anio' )>Año</option>
+            </select>
+            <small id="hintFecha" style="color: var(--muted); font-size: .7rem;"></small>
+
             <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
             @if(request('fecha'))
             <a href="{{ route('dashboard.index') }}" class="btn btn-ghost btn-sm"
@@ -83,7 +99,7 @@
         </form>
 
         {{-- Botón para descargar el reporte dashboard.pdf --}}
-        <a href="{{ route('dashboard.reporte', ['fecha' => request('fecha', now()->format('Y-m-d'))]) }}"
+        <a href="{{ route('dashboard.reporte', ['fecha' => request('fecha', now()->format('Y-m-d')), 'periodo' => request('periodo', 'mes')]) }}"
             class="btn btn-ghost btn-sm"
             style="border: 1px solid var(--border); display: flex; align-items: center; gap: .3rem;">
             <span>📄</span> Exportar PDF
@@ -234,17 +250,32 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+    // Guardamos las instancias para poder destruirlas antes de re-renderizar (evita el error "Canvas is already in use")
+    let chartsActivos = { ingresos: null, estados: null, mecanicos: null, repuestos: null };
+
     document.addEventListener("DOMContentLoaded", function() {
-        // Obtenemos el parámetro de fecha actual de la URL para pasárselo a la API asíncrona
         const urlParams = new URLSearchParams(window.location.search);
         const fechaFiltro = urlParams.get('fecha') || '';
+        const periodoFiltro = urlParams.get('periodo') || 'mes';
 
-        // Disparamos la carga de datos respetando de forma segura el estado de las fechas
-        cargarDataGraficas(fechaFiltro);
+        actualizarHintFecha(periodoFiltro);
+        document.getElementById('periodo').addEventListener('change', (e) => actualizarHintFecha(e.target.value));
+
+        cargarDataGraficas(fechaFiltro, periodoFiltro);
     });
 
-    function cargarDataGraficas(fechaSeleccionada) {
-        fetch(`{{ route('dashboard.filtrar') }}?fecha=${fechaSeleccionada}`)
+    function actualizarHintFecha(periodo) {
+        const hints = {
+            dia:    'Se usará esa fecha exacta (00:00 a 23:59).',
+            semana: 'Se tomará la semana que contiene esa fecha (Dom-Sáb).',
+            mes:    'Se tomará el mes completo que contiene esa fecha.',
+            anio:   'Se tomará el año completo que contiene esa fecha.'
+        };
+        document.getElementById('hintFecha').textContent = hints[periodo] || '';
+    }
+
+    function cargarDataGraficas(fechaSeleccionada, periodoSeleccionado) {
+        fetch(`{{ route('dashboard.filtrar') }}?fecha=${fechaSeleccionada}&periodo=${periodoSeleccionado}`)
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -267,9 +298,17 @@
             }
         };
 
+        // Destruimos cualquier instancia previa antes de crear una nueva (fix del bug al re-filtrar)
+        Object.keys(chartsActivos).forEach(key => {
+            if (chartsActivos[key]) {
+                chartsActivos[key].destroy();
+                chartsActivos[key] = null;
+            }
+        });
+
         // 1. CHART: LÍNEAS (Evolución de Ingresos)
         const ctxIngresos = document.getElementById('chartIngresos').getContext('2d');
-        new Chart(ctxIngresos, {
+        chartsActivos.ingresos = new Chart(ctxIngresos, {
             type: 'line',
             data: {
                 labels: data.reporte_ingresos.map(item => item.periodo || item.dia),
@@ -294,7 +333,7 @@
 
         // 2. CHART: DONA (Estados Operativos)
         const ctxEstados = document.getElementById('chartEstados').getContext('2d');
-        new Chart(ctxEstados, {
+        chartsActivos.estados = new Chart(ctxEstados, {
             type: 'doughnut',
             data: {
                 labels: data.reporte_estados.map(item => item.estado),
@@ -309,7 +348,7 @@
 
         // 3. CHART: BARRAS HORIZONTALES (Rendimiento Realiza)
         const ctxMecanicos = document.getElementById('chartMecanicos').getContext('2d');
-        new Chart(ctxMecanicos, {
+        chartsActivos.mecanicos = new Chart(ctxMecanicos, {
             type: 'bar',
             data: {
                 labels: data.reporte_mecanicos.map(item => item.nombre),
@@ -333,7 +372,7 @@
 
         // 4. CHART: BARRAS VERTICALES (Detalle Repuestos)
         const ctxRepuestos = document.getElementById('chartRepuestos').getContext('2d');
-        new Chart(ctxRepuestos, {
+        chartsActivos.repuestos = new Chart(ctxRepuestos, {
             type: 'bar',
             data: {
                 labels: data.reporte_repuestos.map(item => item.nombre),

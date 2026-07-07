@@ -50,6 +50,7 @@ class DashboardController extends Controller
 {
     try {
         $fechaInput = $request->input('fecha');
+        $periodoInput = $request->input('periodo'); // dia | semana | mes | anio
 
         // Creación de las queries bases
         $queryIngresos = DB::table('cuota');
@@ -59,26 +60,23 @@ class DashboardController extends Controller
         $queryRepuestos = DB::table('detalle_repuesto')
             ->join('repuesto', 'detalle_repuesto.id_repuesto', '=', 'repuesto.id');
 
-        // 🕒 CONTROL DE FECHAS INTELIGENTE: 
-        // Si el usuario pasa una fecha, filtramos ese mes. Si viene vacío, extrae el Histórico Completo.
+        // 🕒 CONTROL DE FECHAS INTELIGENTE:
+        // Si el usuario pasa una fecha, calculamos el rango [inicio, fin] según el período elegido.
+        // Si viene vacío, extrae el Histórico Completo (sin límite de fechas).
         if (!empty($fechaInput)) {
-            $fecha = \Carbon\Carbon::parse($fechaInput);
-            $mes = $fecha->month;
-            $anio = $fecha->year;
+            [$inicio, $fin, $formatoAgrupacion] = $this->resolverRangoPeriodo($fechaInput, $periodoInput);
 
-            // Filtros aplicados por rango de mes seleccionado
-            $queryIngresos->whereMonth('fecha', $mes)->whereYear('fecha', $anio);
-            $queryEstados->whereMonth('fecha_inicio', $mes)->whereYear('fecha_inicio', $anio);
-            
+            $queryIngresos->whereBetween('fecha', [$inicio, $fin]);
+            $queryEstados->whereBetween('fecha_inicio', [$inicio, $fin]);
+
             // Unimos a orden_trabajo en las tablas relacionales para poder filtrar por su fecha_inicio
             $queryMecanicos->join('orden_trabajo', 'realiza.nro_orden_trabajo', '=', 'orden_trabajo.nro')
-                           ->whereMonth('orden_trabajo.fecha_inicio', $mes)->whereYear('orden_trabajo.fecha_inicio', $anio);
-            
-            $queryRepuestos->join('orden_trabajo', 'detalle_repuesto.nro_orden_trabajo', '=', 'orden_trabajo.nro')
-                           ->whereMonth('orden_trabajo.fecha_inicio', $mes)->whereYear('orden_trabajo.fecha_inicio', $anio);
+                           ->whereBetween('orden_trabajo.fecha_inicio', [$inicio, $fin]);
 
-            // Formato de agrupación por día
-            $queryIngresos->select(DB::raw("DATE_FORMAT(fecha, '%d/%m') as periodo"), DB::raw('SUM(monto) as total'));
+            $queryRepuestos->join('orden_trabajo', 'detalle_repuesto.nro_orden_trabajo', '=', 'orden_trabajo.nro')
+                           ->whereBetween('orden_trabajo.fecha_inicio', [$inicio, $fin]);
+
+            $queryIngresos->select(DB::raw("DATE_FORMAT(fecha, '{$formatoAgrupacion}') as periodo"), DB::raw('SUM(monto) as total'));
         } else {
             // Formato de agrupación global por Año-Mes
             $queryIngresos->select(DB::raw("DATE_FORMAT(fecha, '%Y-%m') as periodo"), DB::raw('SUM(monto) as total'));
@@ -104,10 +102,12 @@ class DashboardController extends Controller
             'reporte_repuestos'=> $repuestos
         ]);
 
-    } catch (\Exception $e) {
+    } catch (\Throwable $e) {
         return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
     }
 }
+
+
     /**
      * CU23 - Flujo: 1.1 calcularMetricas()
      * Mantiene consistencia con los requerimientos de tu caso de uso histórico global.
@@ -132,21 +132,176 @@ class DashboardController extends Controller
      */
     public function exportarReporte(Request $request)
     {
-        $fecha = $request->input('fecha', '2026-07-06');
+        $fechaInput = $request->input('fecha', now()->format('Y-m-d'));
+        $periodoInput = $request->input('periodo', 'mes');
 
-        $ordenesFiltradas = OrdenTrabajo::whereRaw("DATE(fecha_inicio) = ?", [$fecha])->get();
-        $idsOrdenes = $ordenesFiltradas->pluck('nro')->toArray();
+        [$inicio, $fin, $formatoAgrupacion] = $this->resolverRangoPeriodo($fechaInput, $periodoInput);
+
+        // Mismas 4 fuentes que alimentan las gráficas web (filtrarMetricas), para que el PDF calque lo filtrado en pantalla
+        $ingresos = DB::table('cuota')
+            ->whereBetween('fecha', [$inicio, $fin])
+            ->select(DB::raw("DATE_FORMAT(fecha, '{$formatoAgrupacion}') as periodo"), DB::raw('SUM(monto) as total'))
+            ->groupBy('periodo')->orderBy('periodo', 'asc')->get();
+
+        $estados = DB::table('orden_trabajo')
+            ->whereBetween('fecha_inicio', [$inicio, $fin])
+            ->select('estado', DB::raw('count(*) as total'))
+            ->groupBy('estado')->get();
+
+        $mecanicos = DB::table('realiza')
+            ->join('persona', 'realiza.ci_personal', '=', 'persona.ci')
+            ->join('orden_trabajo', 'realiza.nro_orden_trabajo', '=', 'orden_trabajo.nro')
+            ->whereBetween('orden_trabajo.fecha_inicio', [$inicio, $fin])
+            ->select('persona.nombre', DB::raw('COUNT(realiza.nro_orden_trabajo) as trabajos_realizados'))
+            ->groupBy('persona.ci', 'persona.nombre')->orderBy('trabajos_realizados', 'desc')->limit(5)->get();
+
+        $repuestos = DB::table('detalle_repuesto')
+            ->join('repuesto', 'detalle_repuesto.id_repuesto', '=', 'repuesto.id')
+            ->join('orden_trabajo', 'detalle_repuesto.nro_orden_trabajo', '=', 'orden_trabajo.nro')
+            ->whereBetween('orden_trabajo.fecha_inicio', [$inicio, $fin])
+            ->select('repuesto.nombre', DB::raw('SUM(detalle_repuesto.cantidad) as total_usado'))
+            ->groupBy('repuesto.id', 'repuesto.nombre')->orderBy('total_usado', 'desc')->limit(5)->get();
 
         $metricas = [
-            'totalOrdenes'         => $ordenesFiltradas->count(),
-            'ingresosCuotas'       => (float) Cuota::whereRaw("DATE(fecha) = ?", [$fecha])->sum('monto'),
-            'totalRepuestosUsados' => !empty($idsOrdenes) ? DetalleRepuesto::whereIn('nro_orden_trabajo', $idsOrdenes)->sum('cantidad') : 0,
-            'mecanicosActivos'     => !empty($idsOrdenes) ? Realiza::whereIn('nro_orden_trabajo', $idsOrdenes)->distinct('ci_personal')->count('ci_personal') : 0,
-            'fecha_filtro'         => $fecha
+            'fecha_filtro'  => $fechaInput,
+            'periodo'       => $periodoInput,
+            'rango_inicio'  => $inicio->format('d/m/Y'),
+            'rango_fin'     => $fin->format('d/m/Y'),
         ];
 
-        $pdf = Pdf::loadView('reportes.dashboard_pdf', compact('metricas'));
+        // Generamos las 4 imágenes de las gráficas (mismos tipos y colores que la vista web) vía QuickChart
+        $imgIngresos  = $this->generarImagenGrafica('line', $ingresos->pluck('periodo'), $ingresos->pluck('total'), 'Recaudado ($)', '#f29436', 'rgba(242,148,54,0.15)');
+        $imgEstados   = $this->generarImagenGraficaDona($estados->pluck('estado'), $estados->pluck('total'));
+        $imgMecanicos = $this->generarImagenGrafica('bar', $mecanicos->pluck('nombre'), $mecanicos->pluck('trabajos_realizados'), 'Órdenes Concluidas', '#36a2eb', '#36a2eb', true);
+        $imgRepuestos = $this->generarImagenGrafica('bar', $repuestos->pluck('nombre'), $repuestos->pluck('total_usado'), 'Unidades Usadas', '#e74a3b', '#e74a3b');
+
+        $pdf = Pdf::loadView('reportes.dashboard_pdf', compact(
+            'metricas', 'ingresos', 'estados', 'mecanicos', 'repuestos',
+            'imgIngresos', 'imgEstados', 'imgMecanicos', 'imgRepuestos'
+        ));
         return $pdf->download('dashboard.pdf');
+    }
+
+
+
+
+    /**
+     * Resuelve el rango [inicio, fin] y el formato de agrupación (DATE_FORMAT)
+     * según el período elegido, tomando la fecha del <input type="date"> como referencia.
+     * Semana: Domingo a Sábado.
+     */
+    private function resolverRangoPeriodo(string $fechaInput, ?string $periodo): array
+    {
+        $fecha = \Carbon\Carbon::parse($fechaInput);
+        $periodo = $periodo ?: 'mes'; // valor por defecto si no llega el parámetro
+
+        switch ($periodo) {
+            case 'dia':
+                $inicio = $fecha->copy()->startOfDay();
+                $fin    = $fecha->copy()->endOfDay();
+                $formato = '%H:00'; // agrupación horaria dentro del día
+                break;
+
+            case 'semana':
+                $inicio = $fecha->copy()->startOfWeek(\Carbon\Carbon::SUNDAY);
+                $fin    = $fecha->copy()->endOfWeek(\Carbon\Carbon::SATURDAY);
+                $formato = '%d/%m'; // 7 puntos, uno por día
+                break;
+
+            case 'anio':
+                $inicio = $fecha->copy()->startOfYear();
+                $fin    = $fecha->copy()->endOfYear();
+                $formato = '%Y-%m'; // 12 puntos, uno por mes
+                break;
+
+            case 'mes':
+            default:
+                $inicio = $fecha->copy()->startOfMonth();
+                $fin    = $fecha->copy()->endOfMonth();
+                $formato = '%d/%m'; // un punto por día del mes
+                break;
+        }
+
+        return [$inicio, $fin, $formato];
+    }
+
+
+    /**
+     * Genera una imagen PNG (línea o barras) vía QuickChart.io replicando la config de Chart.js de la vista web.
+     * Retorna un data URI base64 listo para usar en <img src="...">, o null si falla la llamada externa.
+     */
+    private function generarImagenGrafica($tipo, $labels, $data, $label, $color, $bg, $horizontal = false): ?string
+    {
+        try {
+            $config = [
+                'type' => $tipo,
+                'data' => [
+                    'labels' => $labels->values()->all(),
+                    'datasets' => [[
+                        'label' => $label,
+                        'data' => $data->values()->all(),
+                        'borderColor' => $color,
+                        'backgroundColor' => $bg,
+                        'fill' => $tipo === 'line',
+                        'tension' => 0.25,
+                    ]],
+                ],
+                'options' => [
+                    'indexAxis' => $horizontal ? 'y' : 'x',
+                    'plugins' => ['legend' => ['display' => true]],
+                ],
+            ];
+
+            $response = \Illuminate\Support\Facades\Http::timeout(10)->get('https://quickchart.io/chart', [
+                'c' => json_encode($config),
+                'width' => 600,
+                'height' => 320,
+                'backgroundColor' => 'white',
+                'format' => 'png',
+            ]);
+
+            if ($response->successful()) {
+                return 'data:image/png;base64,' . base64_encode($response->body());
+            }
+        } catch (\Throwable $e) {
+            // Si QuickChart no responde (sin internet, timeout, etc.) devolvemos null y el blade cae al respaldo en tabla
+        }
+        return null;
+    }
+
+    /**
+     * Genera la imagen de la dona (Estados) vía QuickChart.
+     */
+    private function generarImagenGraficaDona($labels, $data): ?string
+    {
+        try {
+            $config = [
+                'type' => 'doughnut',
+                'data' => [
+                    'labels' => $labels->values()->all(),
+                    'datasets' => [[
+                        'data' => $data->values()->all(),
+                        'backgroundColor' => ['#f29436', '#36a2eb', '#e74a3b', '#28a745', '#ffc107', '#6c757d'],
+                    ]],
+                ],
+                'options' => ['plugins' => ['legend' => ['display' => true, 'position' => 'right']]],
+            ];
+
+            $response = \Illuminate\Support\Facades\Http::timeout(10)->get('https://quickchart.io/chart', [
+                'c' => json_encode($config),
+                'width' => 500,
+                'height' => 320,
+                'backgroundColor' => 'white',
+                'format' => 'png',
+            ]);
+
+            if ($response->successful()) {
+                return 'data:image/png;base64,' . base64_encode($response->body());
+            }
+        } catch (\Throwable $e) {
+            //
+        }
+        return null;
     }
 
 
