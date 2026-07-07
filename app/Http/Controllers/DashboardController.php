@@ -46,46 +46,67 @@ class DashboardController extends Controller
      * ESTE MÉTODO ALIMENTA TU GRÁFICA WEB VÍA AJAX.
      * Retorna exactamente el formato de objetos que tu JavaScript sabe procesar.
      */
-public function filtrarMetricas(Request $request)
+    public function filtrarMetricas(Request $request)
 {
-    // 1. Capturamos el input de la fecha
-    $fechaInput = $request->input('fecha');
-
     try {
+        $fechaInput = $request->input('fecha');
+
+        // Creación de las queries bases
+        $queryIngresos = DB::table('cuota');
+        $queryEstados  = DB::table('orden_trabajo');
+        $queryMecanicos = DB::table('realiza')
+            ->join('persona', 'realiza.ci_personal', '=', 'persona.ci');
+        $queryRepuestos = DB::table('detalle_repuesto')
+            ->join('repuesto', 'detalle_repuesto.id_repuesto', '=', 'repuesto.id');
+
+        // 🕒 CONTROL DE FECHAS INTELIGENTE: 
+        // Si el usuario pasa una fecha, filtramos ese mes. Si viene vacío, extrae el Histórico Completo.
         if (!empty($fechaInput)) {
-            // Carbon detectará inteligentemente si viene como YYYY-MM-DD o DD/MM/YYYY y lo estandarizará
-            $fecha = \Carbon\Carbon::parse($fechaInput)->format('Y-m-d');
+            $fecha = \Carbon\Carbon::parse($fechaInput);
+            $mes = $fecha->month;
+            $anio = $fecha->year;
+
+            // Filtros aplicados por rango de mes seleccionado
+            $queryIngresos->whereMonth('fecha', $mes)->whereYear('fecha', $anio);
+            $queryEstados->whereMonth('fecha_inicio', $mes)->whereYear('fecha_inicio', $anio);
+            
+            // Unimos a orden_trabajo en las tablas relacionales para poder filtrar por su fecha_inicio
+            $queryMecanicos->join('orden_trabajo', 'realiza.nro_orden_trabajo', '=', 'orden_trabajo.nro')
+                           ->whereMonth('orden_trabajo.fecha_inicio', $mes)->whereYear('orden_trabajo.fecha_inicio', $anio);
+            
+            $queryRepuestos->join('orden_trabajo', 'detalle_repuesto.nro_orden_trabajo', '=', 'orden_trabajo.nro')
+                           ->whereMonth('orden_trabajo.fecha_inicio', $mes)->whereYear('orden_trabajo.fecha_inicio', $anio);
+
+            // Formato de agrupación por día
+            $queryIngresos->select(DB::raw("DATE_FORMAT(fecha, '%d/%m') as periodo"), DB::raw('SUM(monto) as total'));
         } else {
-            $fecha = '2026-07-06';
+            // Formato de agrupación global por Año-Mes
+            $queryIngresos->select(DB::raw("DATE_FORMAT(fecha, '%Y-%m') as periodo"), DB::raw('SUM(monto) as total'));
+            $queryMecanicos->join('orden_trabajo', 'realiza.nro_orden_trabajo', '=', 'orden_trabajo.nro');
+            $queryRepuestos->join('orden_trabajo', 'detalle_repuesto.nro_orden_trabajo', '=', 'orden_trabajo.nro');
         }
+
+        // Ejecución ordenada de la recopilación de datos
+        $ingresos = $queryIngresos->groupBy('periodo')->orderBy('periodo', 'asc')->get();
+        $estados  = $queryEstados->select('estado', DB::raw('count(*) as total'))->groupBy('estado')->get();
+        
+        $mecanicos = $queryMecanicos->select('persona.nombre', DB::raw('COUNT(realiza.nro_orden_trabajo) as trabajos_realizados'))
+            ->groupBy('persona.ci', 'persona.nombre')->orderBy('trabajos_realizados', 'desc')->limit(5)->get();
+            
+        $repuestos = $queryRepuestos->select('repuesto.nombre', DB::raw('SUM(detalle_repuesto.cantidad) as total_usado'))
+            ->groupBy('repuesto.id', 'repuesto.nombre')->orderBy('total_usado', 'desc')->limit(5)->get();
+
+        return response()->json([
+            'success' => true,
+            'reporte_ingresos' => $ingresos,
+            'reporte_estados'  => $estados,
+            'reporte_mecanicos'=> $mecanicos,
+            'reporte_repuestos'=> $repuestos
+        ]);
+
     } catch (\Exception $e) {
-        // Si falla el parseo por algún formato extraño, aseguramos el día de hoy hardcodeado
-        $fecha = '2026-07-06';
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
     }
-
-    // 2. Órdenes del día usando la fecha limpia estandarizada
-    $ordenesFiltradas = OrdenTrabajo::whereRaw("DATE(fecha_inicio) = ?", [$fecha])->get();
-    $idsOrdenes = $ordenesFiltradas->pluck('nro')->toArray(); 
-
-    // 3. Cuotas del día
-    $cuotasFiltradas = Cuota::whereRaw("DATE(fecha) = ?", [$fecha])->get();
-    
-    // 4. Repuestos y Realiza vinculados
-    $repuestosFiltrados = collect();
-    $realizaFiltrado = collect();
-
-    if (!empty($idsOrdenes)) {
-        $repuestosFiltrados = DetalleRepuesto::whereIn('nro_orden_trabajo', $idsOrdenes)->get();
-        $realizaFiltrado = Realiza::whereIn('nro_orden_trabajo', $idsOrdenes)->get(); 
-    }
-
-    return response()->json([
-        'ordenes'   => $ordenesFiltradas,
-        'cuotas'    => $cuotasFiltradas,
-        'repuestos' => $repuestosFiltrados,
-        'realiza'   => $realizaFiltrado,
-        'fecha_procesada_backend' => $fecha // Esto te servirá para ver en Network qué fecha entendió Laravel
-    ]);
 }
     /**
      * CU23 - Flujo: 1.1 calcularMetricas()
@@ -127,4 +148,10 @@ public function filtrarMetricas(Request $request)
         $pdf = Pdf::loadView('reportes.dashboard_pdf', compact('metricas'));
         return $pdf->download('dashboard.pdf');
     }
+
+
+
+
+
+
 }
