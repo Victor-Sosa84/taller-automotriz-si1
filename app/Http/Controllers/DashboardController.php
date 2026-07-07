@@ -43,7 +43,7 @@ class DashboardController extends Controller
 
     /**
      * CU23 - Flujo: 2. aplicarFiltro() -> 2.1 filtrarMetricas()
-     * ESTE MÉTODO ALIMENTA TU GRÁFICA WEB VÍA AJAX.
+     * ESTE MÉTODO ALIMENTA la GRÁFICA WEB VÍA AJAX.
      * Retorna exactamente el formato de objetos que tu JavaScript sabe procesar.
      */
     public function filtrarMetricas(Request $request)
@@ -264,7 +264,7 @@ class DashboardController extends Controller
                 return 'data:image/png;base64,' . base64_encode($response->body());
             }
         } catch (\Throwable $e) {
-            // Si QuickChart no responde (sin internet, timeout, etc.) devolvemos null y el blade cae al respaldo en tabla
+            // Si QuickChart no responde (sin internet, timeout, etc.) devolvemos null y el blade cae al respaldo en tabla XD
         }
         return null;
     }

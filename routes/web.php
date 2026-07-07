@@ -31,8 +31,10 @@ use App\Http\Controllers\SalidaVehiculoController;
 Route::get('/', function () {
     return Auth::check() ? redirect()->route('dashboard.index') : redirect()->route('login');
 });
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 
 Route::middleware(['auth'])->group(function () {
+
 
     // ── API interna ───────────────────────────────────────────
     Route::get('/api/persona/{ci}', function (string $ci) {
