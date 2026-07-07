@@ -25,42 +25,12 @@ use App\Http\Controllers\ContratoController;
 use App\Http\Controllers\PagoController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SalidaVehiculoController;
 
+// ── RUTA RAÍZ INDEPENDIENTE ───────────────────────────────────
 Route::get('/', function () {
-    return Auth::check() ? redirect()->route('dashboard') : redirect()->route('login');
-});
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
-Route::get('/dashboard/reporte', [DashboardController::class, 'exportarReporte'])->name('dashboard.reporte');
-
-
-// Ruta de la vista / comando de voz
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
-
-// Ruta exclusiva para refrescar la gráfica por AJAX (Filtro por fecha o refresh manual)
-Route::get('/dashboard/filtrar', [DashboardController::class, 'filtrarMetricas'])->name('dashboard.filtrar');
-
-
-//use App\Http\Controllers\SalidaVehiculoController;
-// Envuelve tus rutas operativas dentro del middleware 'auth'
-Route::middleware(['auth'])->group(function () {
-    
-    // Ruta del Dashboard protegida
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
-    
-    // Tu nueva ruta de Salida de Vehículos protegida
-    Route::get('/salida-vehiculos', function () {
-        return view('salida.index');
-    })->name('salida.index');
-    
-});
-Route::get('/', function () {
-    // CORRECCIÓN: Se cambió 'dashboard' por 'dashboard.index'
     return Auth::check() ? redirect()->route('dashboard.index') : redirect()->route('login');
 });
-
-
-
-
 
 Route::middleware(['auth'])->group(function () {
 
@@ -85,9 +55,10 @@ Route::middleware(['auth'])->group(function () {
         return response()->json($rol->permisos->pluck('id'));
     })->name('api.rol.permisos');
 
-    // ── Dashboard ─────────────────────────────────────────────
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
+// ── Dashboard Único ───────────────────────────────────────
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+    Route::get('/dashboard/filtrar', [DashboardController::class, 'filtrarMetricas'])->name('dashboard.filtrar');
+    Route::get('/dashboard/reporte', [DashboardController::class, 'exportarReporte'])->name('dashboard.reporte');
     // ── Usuarios ─────────────────────────────────────────────
     Route::get('/usuarios',             [UsuarioController::class, 'index'])->name('usuarios.index')->middleware('permiso:CU13_BUS');
     Route::get('/usuarios/create',      [UsuarioController::class, 'create'])->name('usuarios.create')->middleware('permiso:CU13_ADD');
@@ -233,9 +204,16 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/pagos/{id_contrato}/calcular', 'calcularPago')->name('pagos.calculate')->middleware('permiso:CU12_BUS');
         Route::post('/pagos/guardar', 'mostrarPago')->name('pagos.store')->middleware('permiso:CU12_ADD'); // Este procesa el envío de la liquidación
     });
+
+
+    // 🚗 Gestión de Salida de Vehículos
+    Route::get('/salida-vehiculos', [SalidaVehiculoController::class, 'listarTrabajos'])->name('salida.index');
+    Route::post('/salida-vehiculos/verificar', [SalidaVehiculoController::class, 'mostrarTrabajo'])->name('salida.verificar');
+    Route::post('/salida-vehiculos/registrar', [SalidaVehiculoController::class, 'registrarSalida'])->name('salida.registrar');
+    Route::get('/salida-vehiculos/imprimir/{nro_orden}', [SalidaVehiculoController::class, 'imprimirSalida'])->name('salida.imprimir');
+
+
+
     });
 
 require __DIR__.'/auth.php';
-
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
-Route::get('/dashboard/reporte', [DashboardController::class, 'exportarReporte'])->name('dashboard.reporte');

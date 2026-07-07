@@ -637,8 +637,8 @@
             {{-- En tu barra lateral, dentro de la sección OPERACIONES --}}
             <div class="menu-item">
                 <a href="{{ route('salida.index') }}"
-                    class="nav-link {{ Request::is('salida-vehiculos') ? 'active' : '' }}"
-                    style="color: #fff; text-decoration: none; display: flex; align-items: center; padding: 0.5rem 1rem;">
+                    class="nav-item {{ request()->routeIs('salida-vehiculos*') ? 'active' : '' }}"
+                    onclick="cerrarSidebar()">
                     <span style="margin-right: 0.5rem;">🚗</span>
                     <span>Salida de Vehículos</span>
                 </a>
